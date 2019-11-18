@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Android Kotlin Template 2</string>
+
+    <string name="first_run_label">Is this the first run?</string>
+    <string name="first_run_toggle_on">Yes</string>
+    <string name="first_run_toggle_off">No</string>
+</resources>
