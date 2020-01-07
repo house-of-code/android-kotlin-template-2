@@ -13,7 +13,7 @@ This template is a renewed version of the previous Clean Architecture template, 
 ### Step 1: Clone project
 Clone the project into a new folder:
 ```
-git clone git@bitbucket.org:houseofcode/android-kotlin-template-2.git my-new-project
+git clone git@github.com:house-of-code/android-kotlin-template-2.git my-new-project
 ```
 
 ### Step 2: Application id and package name
