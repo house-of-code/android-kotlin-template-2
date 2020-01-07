@@ -1,4 +1,4 @@
-package io.houseofcode.template2.domain.usecase
+package io.houseofcode.template2.domain.interactor
 
 import androidx.lifecycle.LiveData
 

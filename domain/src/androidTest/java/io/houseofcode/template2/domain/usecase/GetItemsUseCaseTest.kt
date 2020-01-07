@@ -6,13 +6,13 @@ import com.google.common.truth.Truth.assertThat
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import io.houseofcode.template2.domain.CoroutineTest
-import io.houseofcode.template2.domain.getTestValue
+import io.houseofcode.template2.domain.getOrAwaitValue
 import io.houseofcode.template2.domain.model.Item
 import io.houseofcode.template2.domain.model.Resource
 import io.houseofcode.template2.domain.pushValue
 import io.houseofcode.template2.domain.repository.ItemRepository
 import io.houseofcode.template2.domain.toDate
-import kotlinx.coroutines.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.time.LocalDateTime
@@ -45,7 +45,7 @@ class GetItemsUseCaseTest: CoroutineTest() {
         // Execute use case and receive result as LiveData.
         val liveData = useCase.execute()
         // Extract value from LiveData once.
-        val resource = liveData.getTestValue()
+        val resource = liveData.getOrAwaitValue()
 
         // Evaluate result.
         assertThat(resource.status).isEqualTo(Resource.Status.SUCCESS)

@@ -19,7 +19,7 @@ interface MainContract {
         /**
          * Add new item.
          */
-        fun addItem(item: Item)
+        fun addItem(id: String)
 
         /**
          * Set flag for first run.

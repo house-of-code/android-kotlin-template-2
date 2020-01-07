@@ -1,6 +1,7 @@
 package io.houseofcode.template2.domain.usecase
 
 import androidx.lifecycle.LiveData
+import io.houseofcode.template2.domain.interactor.LiveDataInteractor
 import io.houseofcode.template2.domain.model.Item
 import io.houseofcode.template2.domain.model.Resource
 import io.houseofcode.template2.domain.repository.ItemRepository

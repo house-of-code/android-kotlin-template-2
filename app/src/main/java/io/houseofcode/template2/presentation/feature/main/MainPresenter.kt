@@ -6,6 +6,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import io.houseofcode.template2.domain.model.Item
 import io.houseofcode.template2.domain.model.Resource
+import io.houseofcode.template2.domain.usecase.GenerateItemUseCase
 import io.houseofcode.template2.presentation.viewmodel.ItemViewModel
 import io.houseofcode.template2.presentation.viewmodel.SharedPreferencesViewModel
 
@@ -64,7 +65,12 @@ class MainPresenter(private val view: MainContract.View): MainContract.Presenter
         })
     }
 
-    override fun addItem(item: Item) {
+    override fun addItem(id: String) {
+        // Generate item from id.
+        val item = GenerateItemUseCase().execute(
+            GenerateItemUseCase.Params(id)
+        )
+
         // Add item and observe newly created data.
         itemViewModel.addItem(item).observe(lifecycleOwner, Observer { resource ->
             // Check if returned resource is successful or has errors.

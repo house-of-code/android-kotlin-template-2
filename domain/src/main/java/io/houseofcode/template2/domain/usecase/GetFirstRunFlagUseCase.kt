@@ -1,6 +1,7 @@
 package io.houseofcode.template2.domain.usecase
 
 import android.content.SharedPreferences
+import io.houseofcode.template2.domain.interactor.CovariantInteractor
 import io.houseofcode.template2.domain.live.SharedPreferenceBooleanLiveData
 
 /**

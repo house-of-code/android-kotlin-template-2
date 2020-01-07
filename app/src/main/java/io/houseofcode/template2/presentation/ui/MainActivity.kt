@@ -13,7 +13,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.util.*
 
 class MainActivity: AppCompatActivity(), MainContract.View {
 
@@ -42,7 +41,7 @@ class MainActivity: AppCompatActivity(), MainContract.View {
         presenter.getItems()
 
         // Add new item.
-        presenter.addItem(Item("5", "Item 5", Date()))
+        presenter.addItem("5")
     }
 
     override fun onItemReceived(item: Item) {
