@@ -2,7 +2,18 @@
 <resources>
     <string name="app_name">Android Kotlin Template 2</string>
 
+    <!-- Activity labels -->
+    <string name="activity_label_login">Login</string>
+    <string name="activity_label_main">MainActivity</string>
+
+    <!-- Login -->
+    <string name="login_email_hint">E-mail</string>
+    <string name="login_password_hint">Password</string>
+    <string name="login_submit_button_text">Login</string>
+
+    <!-- Main -->
     <string name="first_run_label">Is this the first run?</string>
     <string name="first_run_toggle_on">Yes</string>
     <string name="first_run_toggle_off">No</string>
+    <string name="menu_main_logout">Logout</string>
 </resources>

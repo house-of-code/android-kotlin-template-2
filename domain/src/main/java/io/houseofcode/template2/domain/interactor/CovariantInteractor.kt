@@ -28,7 +28,7 @@ abstract class CovariantInteractor<T: LiveData<*>, in Params: Any?> {
      * @param data Data for optional post processing.
      * @return Post processed data.
      */
-    protected abstract fun process(data: T): T
+    protected open fun process(data: T): T = data
 
     /**
      * Overridable execution method for returning data as subtype of LiveData.

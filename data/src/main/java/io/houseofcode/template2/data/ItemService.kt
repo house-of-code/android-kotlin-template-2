@@ -2,18 +2,18 @@ package io.houseofcode.template2.data
 
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.GsonBuilder
+import io.houseofcode.template2.data.interceptor.AuthenticationInterceptor
+import io.houseofcode.template2.data.interceptor.ItemMockInterceptor
+import io.houseofcode.template2.domain.model.LoginCredentials
+import io.houseofcode.template2.domain.model.LoginToken
 import io.houseofcode.template2.domain.model.Item
-import kotlinx.coroutines.Deferred
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.Path
+import retrofit2.http.*
 import java.io.File
 import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
@@ -27,7 +27,10 @@ interface ItemService {
         // Base URL of service.
         private const val BASE_URL = "https://houseofcode.io/api/v1/"
         // Date format used in service.
-        private const val DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+        private const val DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ"
+
+        // HTTP client set when creating service.
+        var client: OkHttpClient? = null
 
         /**
          * Create service for example API.
@@ -37,10 +40,11 @@ interface ItemService {
          * @param isNetworkAvailable Higher-order function for determining if network is available.
          * @return Test service.
          */
-        fun create(isDebug: Boolean, cacheFile: File?, isNetworkAvailable: () -> Boolean): ItemService {
+        fun create(isDebug: Boolean, cacheFile: File?, getToken: () -> LoginToken?, isNetworkAvailable: () -> Boolean): ItemService {
             val cacheMaxSize: Long = 15 * 1024 * 1024 // 15 mb
 
-            val okHttpClient = OkHttpClient.Builder()
+            client = OkHttpClient.Builder()
+                .addInterceptor(AuthenticationInterceptor { getToken() })
                 .addInterceptor { chain ->
                     if (!isNetworkAvailable()) {
                         throw UnknownHostException("Network not available")
@@ -49,7 +53,7 @@ interface ItemService {
                 }
                 .addInterceptor(HttpLoggingInterceptor().apply {
                     level = if (isDebug) {
-                        HttpLoggingInterceptor.Level.BASIC
+                        HttpLoggingInterceptor.Level.HEADERS
                     } else {
                         HttpLoggingInterceptor.Level.NONE
                     }
@@ -62,7 +66,7 @@ interface ItemService {
 
             val retrofit = Retrofit.Builder()
                 .baseUrl(BASE_URL)
-                .client(okHttpClient)
+                .client(client!!)
                 .addConverterFactory(
                     GsonConverterFactory.create(
                         GsonBuilder()
@@ -80,6 +84,12 @@ interface ItemService {
     }
 
     /**
+     * Example of authentication/login request, providing credentials for token.
+     */
+    @POST("login")
+    suspend fun login(@Body loginCredentials: LoginCredentials): Response<LoginToken>
+
+    /**
      * Example of simple GET request for retrieving single item.
      */
     @GET("items/{id}")
@@ -92,8 +102,9 @@ interface ItemService {
     suspend fun getItems(): Response<List<Item>>
 
     /**
-     * Example of a simple POST request for adding item.
+     * Example of a authenticated POST request for adding item.
      */
+    @Headers(AuthenticationInterceptor.AUTH_HEADER)
     @POST("items")
     suspend fun addItem(@Body body: Item): Response<Item>
 }

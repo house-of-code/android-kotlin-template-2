@@ -1,4 +1,4 @@
-package io.houseofcode.template2.domain.model
+package io.houseofcode.template2.data.model
 
 import androidx.room.ColumnInfo
 import java.util.*

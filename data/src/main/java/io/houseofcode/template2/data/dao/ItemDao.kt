@@ -1,8 +1,11 @@
 package io.houseofcode.template2.data.dao
 
 import androidx.room.*
-import io.houseofcode.template2.domain.model.ItemEntity
+import io.houseofcode.template2.data.model.ItemEntity
 
+/**
+ * Data access object for cached items.
+ */
 @Dao
 interface ItemDao {
     @Query("SELECT * FROM items WHERE id = :itemId")

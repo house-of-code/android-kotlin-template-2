@@ -17,7 +17,12 @@
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
 
-        <activity android:name=".presentation.ui.MainActivity">
+        <activity android:name=".presentation.ui.LoginActivity"
+            android:label="@string/activity_label_login"
+            android:launchMode="singleTask" />
+
+        <activity android:name=".presentation.ui.MainActivity"
+            android:label="@string/activity_label_main">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>

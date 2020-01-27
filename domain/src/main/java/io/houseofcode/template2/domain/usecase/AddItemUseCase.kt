@@ -19,8 +19,5 @@ class AddItemUseCase(private val itemRepository: ItemRepository): LiveDataIntera
         return itemRepository.addItem(state.item)
     }
 
-    // No post processing is necessary in this use case.
-    override fun process(liveData: LiveData<Resource<Item>>): LiveData<Resource<Item>> = liveData
-
     data class Params(val item: Item)
 }

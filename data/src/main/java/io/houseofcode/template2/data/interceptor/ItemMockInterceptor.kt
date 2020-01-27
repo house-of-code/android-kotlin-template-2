@@ -1,4 +1,4 @@
-package io.houseofcode.template2.data
+package io.houseofcode.template2.data.interceptor
 
 import okhttp3.*
 import okio.Buffer
@@ -16,6 +16,12 @@ class ItemMockInterceptor: Interceptor {
         val url = request.url
 
         return when (url.encodedPath) {
+            "/api/v1/login" -> {
+                return when (request.method) {
+                    "POST" -> buildJsonResponse(200, readFile("200-login.json"), chain)
+                    else -> buildJsonResponse(401,"{\"error\":\"error\"}", chain)
+                }
+            }
             "/api/v1/items/1" -> {
                 return when (request.method) {
                     "GET" -> buildJsonResponse(200, readFile("200-items-1.json"), chain)

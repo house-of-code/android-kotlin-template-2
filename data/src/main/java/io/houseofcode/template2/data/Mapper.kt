@@ -1,7 +1,7 @@
-package io.houseofcode.template2.domain
+package io.houseofcode.template2.data
 
+import io.houseofcode.template2.data.model.ItemEntity
 import io.houseofcode.template2.domain.model.Item
-import io.houseofcode.template2.domain.model.ItemEntity
 
 /**
  * Map from database entry to item model.

@@ -10,31 +10,64 @@ This template is a renewed version of the previous Clean Architecture template, 
 
 ## Starter guide
 
-### Step 1: Clone project
-Clone the project into a new folder:
+##### Step 1: Clone project into new folder
+
 ```
-git clone git@github.com:house-of-code/android-kotlin-template-2.git my-new-project
+git clone git@bitbucket.org:houseofcode/android-kotlin-template-2.git my-new-project
 ```
 
-### Step 2: Application id and package name
-The application id (used to identify app) can simply be changed in `app/build.gradle` (see `applicationId` in `android.defaultConfig`).
+##### Step 2: Change application id and package name
 
-To change the package naming used in the application open the manifest and and refactor (`Refactor` > `Rename..`) the package name on the manifest root element.
+Change `applicationId` in `app/build.gradle` and refactor package name on root element in `app/src/main/AndroidManifest.xml`.
 
-### Step 3: Launcher icon
+##### Step 3: Change version code, version name and output filename
 
-All launcher icons (adaptive and legacy icons) can be generated from a square background and foreground SVG (ideally in the same size). Make sure to have these two resources provided, so we can generate adaptive icons and not only use legacy icons for our new apps.
+Open `app/build.gradle` and change `versionCode`, `versionName` and `outputFileName`.
 
-An example of adaptive and legacy icons have been added to this project for each build types; debug and release.
+##### Step 4: Generate new keystore
 
-### Step 4: Run through code
+Go to `Build` > `Generate Signed Bundle` to generate a new keystore for the project and update the passwords and alias in `keystore.properties`. 
 
-This template contains a lot of code examples, that might not benefit your project, so make sure to remove unnecessary files and modify the rest to your needs. You can always come back to this repository to find the code examples again, if you need them during further development.
+See more about signing in [App Signing](#app-signing) below.
 
-The files you most certainly want to modify or replace are:
-- Retrofit service: `ItemService`, located at `io.houseofcode.template2.data.ItemService`, is a simple example of a Retrofit service for network requests.
-- Use cases: Located at `io.houseofcode.template2.domain.usecase` is the example use cases for encapsulating the business logic when accessing data. Don't forget to modify the use case Android tests as well.
-- UI and presenters: Activities (and fragments should) are located at `io.houseofcode.template2.presentation.ui`, and the contract and presenter is found at `io.houseofcode.template2.presentation.feature`.
+##### Step 5: Change app launcher icons
+
+Change the launcher icons (`ic_launcher` and `ic_launcher_round`) for both build variants: `app/src/main/res/` and `app/src/debug/res/`.
+
+You should check out adaptive icons (it's awesome): https://developer.android.com/guide/practices/ui_guidelines/icon_design_adaptive
+
+##### Step 6: Refactor code
+
+The project contains a long list of example files, which showcase some of the common features for an Android application. You should go through all these files; edit the files you'll need and remove the files you wont need.
+
+Remember you can always come back to the template project to look at the examples.
+
+Data (`io.houseofcode.template2.data`):
+
+- `ItemService`, `AuthenticationInterceptor`, `ItemMockInterceptor`: Example of remote API service with mocked responses.
+- `ItemDao`, `CacheEntryDao`: Data access objects for handling local caching database.
+
+Domain (`io.houseofcode.template2.domain`):
+
+- `AddItemUseCase`, `GetItemsUseCase`, `GetItemUseCase`, `LoginUseCase`: Use cases with LiveData.
+- `GetFirstRunFlagUseCase`, `SetFirstRunFlagUseCase`: Use cases with custom subtype of LiveData.
+- `GenerateItemUseCase`: Use case with plain data.
+- `AddItemUseCaseTest`, `GenerateItemUseCaseTest`, `GetItemsUseCaseTest`, `GetItemUseCaseTest`, `LoginUseCaseTest`: Tests of relevant use cases.
+- `ItemRepository`: Interface of data repository's responsibilities, implemented in `CachedItemRepository` and `RemoteItemRepository`.
+
+Presentation (`io.houseofcode.template2.presentation`):
+
+- `LoginActivity`, `LoginContract`, `LoginPresenter`: Login UI with contract describing communication between activity and presenter.
+- `MainActivity`, `MainContract`, `MainPresenter`: UI for launcher activity, similar to login.
+- `ItemViewModel`, `SharedPreferencesViewModel`: View model executing use cases to perform actions.
+- `CachedItemRepository`, `RemoteItemRepository`: Two different implementations of repository from domain layer, accessed from `TemplateApp`.
+- `CacheDatabase`: Abstract class for creating caching database, exposes DAOs in `TemplateApp`.
+
+
+Also make sure to take a look at all the example model classes, which are found here:
+
+- `io.houseofcode.template2.data.model`
+- `io.houseofcode.template2.domain.model`
 
 
 - - -

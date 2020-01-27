@@ -16,7 +16,4 @@ class GetFirstRunFlagUseCase(private val sharedPreferences: SharedPreferences): 
     override fun build(params: Void?): SharedPreferenceBooleanLiveData {
         return SharedPreferenceBooleanLiveData(sharedPreferences, PREF_FIRST_LAUNCH, true)
     }
-
-    // No post processing is necessary in this use case.
-    override fun process(data: SharedPreferenceBooleanLiveData): SharedPreferenceBooleanLiveData = data
 }

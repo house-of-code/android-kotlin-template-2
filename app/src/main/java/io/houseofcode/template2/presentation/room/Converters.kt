@@ -17,7 +17,7 @@ class Converters {
          * without the scope of our function.
          * https://www.callicoder.com/java-simpledateformat-thread-safety-issues/
          */
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).apply {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).apply {
             timeZone = TimeZone.getTimeZone("UTC")
         }
 
@@ -38,7 +38,7 @@ class Converters {
          * without the scope of our function.
          * https://www.callicoder.com/java-simpledateformat-thread-safety-issues/
          */
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).apply {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).apply {
             timeZone = TimeZone.getTimeZone("UTC")
         }
         dateFormat.format(date)

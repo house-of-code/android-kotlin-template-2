@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import io.houseofcode.template2.domain.model.CacheEntry
+import io.houseofcode.template2.data.model.CacheEntry
 
 /**
  * Data access object for cache entries.

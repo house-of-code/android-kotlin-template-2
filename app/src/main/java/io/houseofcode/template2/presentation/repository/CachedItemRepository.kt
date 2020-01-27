@@ -2,14 +2,17 @@ package io.houseofcode.template2.presentation.repository
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import io.houseofcode.template2.TemplateApp
 import io.houseofcode.template2.data.ItemService
 import io.houseofcode.template2.data.dao.CacheEntryDao
 import io.houseofcode.template2.data.dao.ItemDao
 import io.houseofcode.template2.data.getResponseResource
-import io.houseofcode.template2.domain.mapToEntity
-import io.houseofcode.template2.domain.mapToItem
-import io.houseofcode.template2.domain.model.CacheEntry
+import io.houseofcode.template2.data.mapToEntity
+import io.houseofcode.template2.data.mapToItem
+import io.houseofcode.template2.data.model.CacheEntry
+import io.houseofcode.template2.domain.model.LoginCredentials
 import io.houseofcode.template2.domain.model.Item
+import io.houseofcode.template2.domain.model.LoginToken
 import io.houseofcode.template2.domain.model.Resource
 import io.houseofcode.template2.domain.repository.ItemRepository
 import kotlinx.coroutines.CoroutineScope
@@ -26,7 +29,36 @@ import kotlin.math.abs
  */
 class CachedItemRepository(private val cacheDao: CacheEntryDao,
                            private val itemDao: ItemDao,
-                           private val itemService: ItemService): ItemRepository {
+                           isDebug: Boolean,
+                           getToken: () -> LoginToken?,
+                           isNetworkAvailable: () -> Boolean): ItemRepository {
+
+    // Create service from data layer with service caching disabled.
+    // This is the only place where we should access the data layer from the presentation layer.
+    private val itemService = ItemService.create(isDebug, null, getToken, isNetworkAvailable)
+
+    override fun login(email: String, password: String): LiveData<Resource<LoginToken>> {
+        val mutableLiveData = MutableLiveData<Resource<LoginToken>>()
+
+        CoroutineScope(Dispatchers.Main).launch {
+            // We do not cache the login response as token is stored manually for later requests.
+            mutableLiveData.value = withContext(Dispatchers.IO) {
+                itemService.login(
+                    LoginCredentials(
+                        email,
+                        password
+                    )
+                ).getResponseResource()
+            }
+        }
+
+        return mutableLiveData
+    }
+
+    override fun saveToken(loginToken: LoginToken) {
+        // Save token into [SharedPreferences].
+        TemplateApp.pref.loginToken = loginToken
+    }
 
     override fun getItem(id: String): LiveData<Resource<Item>> {
         val cacheKey = "getItem:$id"
@@ -137,7 +169,9 @@ class CachedItemRepository(private val cacheDao: CacheEntryDao,
                         addToCache(it)
 
                         // Add cache entry to store when entity was last cached.
-                        cacheDao.addCacheEntry(CacheEntry(cacheKey, Date()))
+                        cacheDao.addCacheEntry(
+                            CacheEntry(cacheKey, Date())
+                        )
                     }
                 }
             }

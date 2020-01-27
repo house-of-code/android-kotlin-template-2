@@ -2,11 +2,21 @@ package io.houseofcode.template2.domain.repository
 
 import androidx.lifecycle.LiveData
 import io.houseofcode.template2.domain.model.Item
+import io.houseofcode.template2.domain.model.LoginToken
 import io.houseofcode.template2.domain.model.Resource
 
 interface ItemRepository {
 
-    // TODO: Show example of authenticated requests, possible different authentication methods.
+    /**
+     * Login with email and password.
+     */
+    fun login(email: String, password: String): LiveData<Resource<LoginToken>>
+
+    /**
+     * Save login token to persistent storage.
+     * Saved token is used on future authenticated requests.
+     */
+    fun saveToken(loginToken: LoginToken)
 
     /**
      * Get item by id.
