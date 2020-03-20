@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import io.houseofcode.template2.TemplateApp
 import io.houseofcode.template2.domain.model.Item
-import io.houseofcode.template2.domain.model.LoginToken
 import io.houseofcode.template2.domain.model.Resource
 import io.houseofcode.template2.domain.usecase.AddItemUseCase
 import io.houseofcode.template2.domain.usecase.GetItemUseCase
@@ -13,12 +12,12 @@ import io.houseofcode.template2.domain.usecase.LoginUseCase
 
 class ItemViewModel: ViewModel() {
 
-    private val repository = TemplateApp.cachedRepository
+    private val repository = TemplateApp.remoteRepository
 
     /**
      * Login with email and password.
      */
-    fun login(email: String, password: String): LiveData<Resource<LoginToken>> = LoginUseCase(repository)
+    fun login(email: String, password: String): LiveData<Resource<String>> = LoginUseCase(repository)
         .execute(LoginUseCase.Params(email, password))
 
     /**

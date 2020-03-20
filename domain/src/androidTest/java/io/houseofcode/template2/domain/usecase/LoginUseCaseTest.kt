@@ -4,37 +4,36 @@ import androidx.lifecycle.MutableLiveData
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.anyOrNull
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import io.houseofcode.template2.domain.CoroutineTest
 import io.houseofcode.template2.domain.getOrAwaitValue
-import io.houseofcode.template2.domain.model.LoginToken
 import io.houseofcode.template2.domain.model.Resource
 import io.houseofcode.template2.domain.pushValue
 import io.houseofcode.template2.domain.repository.ItemRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers.*
 
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
 class LoginUseCaseTest: CoroutineTest() {
 
     private val testToken = "test_token"
-    private var savedToken: LoginToken? = null
+    private var savedToken: String? = null
 
     // Get mocked repository.
     private val repository: ItemRepository = mock {
-        onBlocking { login(any<String>(), any<String>()) }.doReturn(
-            MutableLiveData<Resource<LoginToken>>().pushValue(
-                Resource.success(
-                    LoginToken(testToken)
-                )
+        onBlocking { login(anyString(), anyString()) }.doReturn(
+            MutableLiveData<Resource<String>>().pushValue(
+                Resource.success(testToken)
             )
         )
-        onBlocking { saveToken(any<LoginToken>()) }.then { invocation ->
-            val loginToken = invocation.arguments[0]
-            if (loginToken is LoginToken) {
+        onBlocking { saveToken(anyString()) }.then { invocation ->
+            val loginToken = invocation.arguments.firstOrNull()
+            if (loginToken is String) {
                 savedToken = loginToken
             }
         }
@@ -55,7 +54,7 @@ class LoginUseCaseTest: CoroutineTest() {
 
         // Check response.
         assertThat(resource.data).isNotNull()
-        assertThat(resource.data?.token).isEqualTo(testToken)
+        assertThat(resource.data).isEqualTo(testToken)
     }
 
     @Test
@@ -69,6 +68,6 @@ class LoginUseCaseTest: CoroutineTest() {
         assertThat(resource.status).isEqualTo(Resource.Status.SUCCESS)
 
         // Check saved token.
-        assertThat(savedToken?.token).isEqualTo(testToken)
+        assertThat(savedToken).isEqualTo(testToken)
     }
 }

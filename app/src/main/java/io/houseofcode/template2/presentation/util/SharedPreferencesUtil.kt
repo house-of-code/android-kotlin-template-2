@@ -2,7 +2,6 @@ package io.houseofcode.template2.presentation.util
 
 import android.content.Context
 import android.content.SharedPreferences
-import io.houseofcode.template2.domain.model.LoginToken
 
 /**
  * Utilities for saving and retrieving simple values from [SharedPreferences].
@@ -24,14 +23,9 @@ class SharedPreferencesUtil(context: Context) {
     /**
      * Get or set token from login.
      */
-    var loginToken: LoginToken?
-        get() = LoginToken(
-            pref.getString(
-                PREF_LOGIN_TOKEN,
-                null
-            )
-        )
-        set(loginToken) = pref.edit().putString(PREF_LOGIN_TOKEN, loginToken?.token).apply()
+    var loginToken: String?
+        get() = pref.getString(PREF_LOGIN_TOKEN, null)
+        set(loginToken) = pref.edit().putString(PREF_LOGIN_TOKEN, loginToken).apply()
 
     /**
      * Logout by clearing user data.

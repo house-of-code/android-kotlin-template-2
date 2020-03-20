@@ -1,25 +1,36 @@
 package io.houseofcode.template2.data
 
 import io.houseofcode.template2.domain.model.Resource
+import org.json.JSONObject
 import retrofit2.Response
 
 /**
- * Make request and return resource as response.
- * @param T Generic data from request.
- * @return Resource holding a successful response or a failed error.
+ * Transform response wrapper to resource.
+ * 3 higher-order functions are provided for transforming response:
+ * - Successful request: Transform original response
+ * - Failed request: Transform response with returned error message
+ * - Thrown exception: Transform response with caught exception
  */
-fun <T> Response<T>.getResponseResource(): Resource<T> {
+fun <T, R> Response<T>.getResponseResource(
+        onSuccess: (T?) -> Resource<R>,
+        onFailed: (errorMessage: String?, T?) -> Resource<R>,
+        onException: (error: Exception, T?) -> Resource<R>
+): Resource<R> {
     // Make sure to catch any exception thrown during request.
     return try {
         // Check if request was successful.
         if (this.isSuccessful) {
-            Resource.success(this.body())
+            // Return response body.
+            onSuccess(this.body())
         } else {
-            // Timber.w("Request was unsuccessful; code: ${response.code()}, url: ${response.raw().request().url()}")
-            Resource.error("Request was unsuccessful; code: ${this.code()}, url: ${this.raw().request.url}")
+            // Get message from error response.
+            var errorMessage: String? = null
+            this.errorBody()?.string()?.let { rawErrorBody ->
+                errorMessage = JSONObject(rawErrorBody).getString("message")
+            }
+            onFailed(errorMessage ?: "Fejl", null)
         }
     } catch (error: Exception) {
-        // Timber.w("Error during request; message: ${error.localizedMessage}")
-        Resource.error("Error during request; message: ${error.localizedMessage}")
+        onException(error, this.body())
     }
 }

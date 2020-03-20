@@ -1,6 +1,5 @@
 package io.houseofcode.template2.presentation.feature.login
 
-import io.houseofcode.template2.domain.model.LoginToken
 import io.houseofcode.template2.presentation.feature.BaseActivityPresenter
 
 class LoginContract {
@@ -18,7 +17,7 @@ class LoginContract {
         /**
          * Callback on successful login request.
          */
-        fun onLoginSuccess(loginToken: LoginToken)
+        fun onLoginSuccess(loginToken: String)
 
         /**
          * Callback on failed login request.

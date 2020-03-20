@@ -3,7 +3,6 @@ package io.houseofcode.template2.domain.usecase
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Transformations
 import io.houseofcode.template2.domain.interactor.LiveDataInteractor
-import io.houseofcode.template2.domain.model.LoginToken
 import io.houseofcode.template2.domain.model.Resource
 import io.houseofcode.template2.domain.repository.ItemRepository
 
@@ -11,20 +10,20 @@ import io.houseofcode.template2.domain.repository.ItemRepository
  * Login and get new token.
  * Token is saved into persistent storage if login request is successful.
  */
-class LoginUseCase(private val itemRepository: ItemRepository): LiveDataInteractor<Resource<LoginToken>, LoginUseCase.Params>() {
+class LoginUseCase(private val repository: ItemRepository): LiveDataInteractor<Resource<String>, LoginUseCase.Params>() {
 
-    override fun build(params: Params?): LiveData<Resource<LoginToken>> {
+    override fun build(params: Params?): LiveData<Resource<String>> {
         val state = checkNotNull(params)
 
-        return itemRepository.login(state.email, state.password)
+        return repository.login(state.email, state.password)
     }
 
-    override fun process(liveData: LiveData<Resource<LoginToken>>): LiveData<Resource<LoginToken>> {
+    override fun process(liveData: LiveData<Resource<String>>): LiveData<Resource<String>> {
         return Transformations.map(liveData) { resource ->
             if (resource.status == Resource.Status.SUCCESS) {
                 resource.data?.let { loginToken ->
                     // Saving new token into persistent storage.
-                    itemRepository.saveToken(loginToken)
+                    repository.saveToken(loginToken)
                 }
             }
             resource

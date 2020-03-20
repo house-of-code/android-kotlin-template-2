@@ -6,7 +6,7 @@ import androidx.lifecycle.MediatorLiveData
 /**
  * Zip or merge two [LiveData] into a single [LiveData] of different type.
  */
-fun <T, K, R> zipLiveData(a: LiveData<T>, b: LiveData<K>, block: (T, K) -> R ): LiveData<R> {
+fun <T, K, R> combineLatest(a: LiveData<T>, b: LiveData<K>, block: (T, K) -> R ): LiveData<R> {
     return MediatorLiveData<R>().apply {
         var lastA: T? = null
         var lastB: K? = null

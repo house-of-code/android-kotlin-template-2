@@ -24,8 +24,5 @@ class SetFirstRunFlagUseCase(private val sharedPreferences: SharedPreferences): 
         }
     }
 
-    // No post processing is necessary in this use case.
-    override fun process(data: SharedPreferenceBooleanLiveData): SharedPreferenceBooleanLiveData = data
-
     data class Params(val isFirstRun: Boolean)
 }

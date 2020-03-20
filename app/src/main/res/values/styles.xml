@@ -1,9 +1,46 @@
 <resources>
 
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
         <item name="colorPrimary">@color/primaryColor</item>
         <item name="colorPrimaryDark">@color/primaryDarkColor</item>
         <item name="colorAccent">@color/accentColor</item>
+
+        <item name="android:windowBackground">@color/backgroundDefault</item>
+        <item name="android:textColor">@color/textDefault</item>
+        <item name="android:textSize">16sp</item>
+
+        <item name="materialButtonStyle">@style/AppTheme.Button</item>
+    </style>
+
+    <!-- Button styles -->
+    <!-- https://material.io/develop/android/components/material-button/ -->
+    <style name="AppTheme.Button" parent="Widget.MaterialComponents.Button">
+        <item name="android:textColor">@color/textLight</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:paddingTop">20dp</item>
+        <item name="android:paddingBottom">20dp</item>
+        <item name="backgroundTint">@drawable/background_button_default</item>
+        <item name="cornerRadius">@dimen/cornerRadius</item>
+    </style>
+
+    <!-- Input styles -->
+    <style name="AppTheme.EditText" parent="TextAppearance.AppCompat">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/textDefault</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:background">@drawable/background_edit_text_rounded</item>
+    </style>
+    <!-- Email input -->
+    <style name="AppTheme.EditText.Email" parent="AppTheme.EditText">
+        <item name="android:inputType">textEmailAddress</item>
+        <item name="android:hint">@string/hint_email</item>
+    </style>
+    <!-- Password input -->
+    <style name="AppTheme.EditText.Password" parent="AppTheme.EditText">
+        <item name="android:inputType">textPassword</item>
+        <item name="android:hint">@string/hint_password</item>
     </style>
 
 </resources>

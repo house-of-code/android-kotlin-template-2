@@ -1,9 +1,11 @@
 package io.houseofcode.template2.presentation.feature.main
 
+import android.content.Context
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import io.houseofcode.template2.R
 import io.houseofcode.template2.domain.model.Item
 import io.houseofcode.template2.domain.model.Resource
 import io.houseofcode.template2.domain.usecase.GenerateItemUseCase
@@ -12,11 +14,13 @@ import io.houseofcode.template2.presentation.viewmodel.SharedPreferencesViewMode
 
 class MainPresenter(private val view: MainContract.View): MainContract.Presenter {
 
+    private lateinit var context: Context
     private lateinit var lifecycleOwner: LifecycleOwner
     private lateinit var itemViewModel: ItemViewModel
     private lateinit var sharedPreferencesViewModel: SharedPreferencesViewModel
 
     override fun attach(activity: FragmentActivity) {
+        context = activity
         lifecycleOwner = activity
 
         itemViewModel = ViewModelProvider(activity).get(ItemViewModel::class.java)
@@ -37,11 +41,11 @@ class MainPresenter(private val view: MainContract.View): MainContract.Presenter
                     if (item != null) {
                         view.onItemReceived(item)
                     } else {
-                        view.onError("Item was null")
+                        view.onError(context.getString(R.string.error_request_get_item))
                     }
                 }
                 Resource.Status.ERROR -> {
-                    view.onError(resource.errorMessage ?: "Could not get item with id: $id")
+                    view.onError(resource.errorMessage ?: context.getString(R.string.error_request_get_item))
                 }
             }
         })
@@ -55,11 +59,11 @@ class MainPresenter(private val view: MainContract.View): MainContract.Presenter
                     if (!items.isNullOrEmpty()) {
                         view.onItemsReceived(items)
                     } else {
-                        view.onError("Items was null or empty")
+                        view.onError(context.getString(R.string.error_request_get_items))
                     }
                 }
                 Resource.Status.ERROR -> {
-                    view.onError(resource.errorMessage ?: "Could not get all items")
+                    view.onError(resource.errorMessage ?: context.getString(R.string.error_request_get_items))
                 }
             }
         })
@@ -80,11 +84,11 @@ class MainPresenter(private val view: MainContract.View): MainContract.Presenter
                     if (newItem != null) {
                         view.onNewItemAdded(newItem)
                     } else {
-                        view.onError("Item was null")
+                        view.onError(context.getString(R.string.error_request_add_item))
                     }
                 }
                 Resource.Status.ERROR -> {
-                    view.onError(resource.errorMessage ?: "Could not add item with id: ${item.id}")
+                    view.onError(resource.errorMessage ?: context.getString(R.string.error_request_add_item))
                 }
             }
         })

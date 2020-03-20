@@ -1,15 +1,15 @@
 package io.houseofcode.template2.data
 
+import com.facebook.stetho.okhttp3.StethoInterceptor
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.GsonBuilder
 import io.houseofcode.template2.data.interceptor.AuthenticationInterceptor
 import io.houseofcode.template2.data.interceptor.ItemMockInterceptor
-import io.houseofcode.template2.domain.model.LoginCredentials
-import io.houseofcode.template2.domain.model.LoginToken
+import io.houseofcode.template2.data.model.LoginToken
 import io.houseofcode.template2.domain.model.Item
+import io.houseofcode.template2.domain.model.LoginCredentials
 import okhttp3.Cache
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -27,7 +27,7 @@ interface ItemService {
         // Base URL of service.
         private const val BASE_URL = "https://houseofcode.io/api/v1/"
         // Date format used in service.
-        private const val DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ"
+        private const val DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'"
 
         // HTTP client set when creating service.
         var client: OkHttpClient? = null
@@ -35,29 +35,26 @@ interface ItemService {
         /**
          * Create service for example API.
          * This service provides basic logging of requests, parsing of dates and conversion of field names.
-         * @param isDebug True if debug variant, to enable logging of requests.
          * @param cacheFile Optional cache file if requests should be cached by OkHttp.
+         * @param getToken Function for retrieving login token.
          * @param isNetworkAvailable Higher-order function for determining if network is available.
          * @return Test service.
          */
-        fun create(isDebug: Boolean, cacheFile: File?, getToken: () -> LoginToken?, isNetworkAvailable: () -> Boolean): ItemService {
+        fun create(cacheFile: File?,
+                   getToken: () -> String?,
+                   isNetworkAvailable: () -> Boolean,
+                   noNetworkErrorMessage: String? = "Network connection not available"): ItemService {
             val cacheMaxSize: Long = 15 * 1024 * 1024 // 15 mb
 
             client = OkHttpClient.Builder()
                 .addInterceptor(AuthenticationInterceptor { getToken() })
                 .addInterceptor { chain ->
                     if (!isNetworkAvailable()) {
-                        throw UnknownHostException("Network not available")
+                        throw UnknownHostException(noNetworkErrorMessage)
                     }
                     chain.proceed(chain.request())
                 }
-                .addInterceptor(HttpLoggingInterceptor().apply {
-                    level = if (isDebug) {
-                        HttpLoggingInterceptor.Level.HEADERS
-                    } else {
-                        HttpLoggingInterceptor.Level.NONE
-                    }
-                })
+                .addNetworkInterceptor( StethoInterceptor() )
                 .addInterceptor(ItemMockInterceptor())
                 .cache(cacheFile?.let { Cache(it, cacheMaxSize) })
                 .connectTimeout(60, TimeUnit.SECONDS)

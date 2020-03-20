@@ -1,16 +1,13 @@
 package io.houseofcode.template2.data.interceptor
 
-import io.houseofcode.template2.domain.model.LoginToken
 import okhttp3.Interceptor
 import okhttp3.Response
 
 /**
  * Interceptor for authentication.
- * - Check for expired JWT.
- * - Add authentication header to request.
- *
+ * Login token will be added to request as it is executed.
  */
-class AuthenticationInterceptor(val getToken: () -> LoginToken?): Interceptor {
+class AuthenticationInterceptor(val getToken: () -> String?): Interceptor {
 
     companion object {
         // Placeholder for authentication header.
@@ -23,15 +20,14 @@ class AuthenticationInterceptor(val getToken: () -> LoginToken?): Interceptor {
         val originalRequest = chain.request()
         // Look for placeholder authentication header to replace with correct token.
         val placeholderAuthHeader = originalRequest.header(AUTH_HEADER_KEY)
+        // Get token.
+        val loginToken = getToken()
 
-        return if (placeholderAuthHeader != null) {
-            // Request requires authentication, get token.
-            val loginToken = getToken()
-
+        return if (placeholderAuthHeader != null && loginToken != null ) {
             // Replace placeholder authentication header.
             chain.proceed(originalRequest.newBuilder()
                 .removeHeader(AUTH_HEADER_KEY)
-                .addHeader(AUTH_HEADER_KEY, "Bearer ${loginToken?.token}")
+                .addHeader(AUTH_HEADER_KEY, "Bearer $loginToken")
                 .build())
         } else {
             // Request does not require authentication, proceed with original request.

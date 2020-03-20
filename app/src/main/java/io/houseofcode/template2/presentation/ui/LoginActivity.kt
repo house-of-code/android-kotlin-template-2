@@ -1,11 +1,11 @@
 package io.houseofcode.template2.presentation.ui
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import io.houseofcode.template2.R
-import io.houseofcode.template2.domain.model.LoginToken
 import io.houseofcode.template2.presentation.feature.login.LoginContract
 import io.houseofcode.template2.presentation.feature.login.LoginPresenter
 import kotlinx.android.synthetic.main.activity_login.*
@@ -15,12 +15,14 @@ class LoginActivity: AppCompatActivity(), LoginContract.View {
 
     companion object {
         /**
-         * Check if login activity active.
-         * When the activity is resumed and paused we set this as a guidance for whether the login activity is shown,
-         * so we do not send user to login screen multiple times. This logic also counts on only once instance of the
-         * login activity being used, which is why the launch mode singleTask is used.
+         * Get intent to start login activity.
+         * The new activity will become the new stack root, clearing any previous back history.
          */
-        var isActive = false
+        fun newIntent(context: Context): Intent {
+            return Intent(context, LoginActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+        }
     }
 
     private lateinit var presenter: LoginContract.Presenter
@@ -28,6 +30,8 @@ class LoginActivity: AppCompatActivity(), LoginContract.View {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+
+        title = getString(R.string.activity_label_login)
 
         presenter = LoginPresenter(this)
         presenter.attach(this)
@@ -37,28 +41,14 @@ class LoginActivity: AppCompatActivity(), LoginContract.View {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-
-        // Activity is shown.
-        isActive = true
-    }
-
-    override fun onPause() {
-        super.onPause()
-
-        // Activity is paused.
-        isActive = false
-    }
-
-    override fun onLoginSuccess(loginToken: LoginToken) {
+    override fun onLoginSuccess(loginToken: String) {
         // Successfully performed login, token is received and already saved in persistent storage.
-        Timber.d("onLoginSuccess { loginToken: ${loginToken.token} }")
+        Timber.d("onLoginSuccess { loginToken: $loginToken }")
 
         // Redirect user.
-        val mainIntent = Intent(this, MainActivity::class.java)
-        mainIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        startActivity(mainIntent)
+        startActivity(
+            MainActivity.newIntent(this)
+        )
     }
 
     override fun onLoginError(errorMessage: String) {

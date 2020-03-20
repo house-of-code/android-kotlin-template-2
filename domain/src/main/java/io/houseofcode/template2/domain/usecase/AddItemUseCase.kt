@@ -10,13 +10,13 @@ import java.util.*
 /**
  * Simple use case for pushing new item to repository.
  */
-class AddItemUseCase(private val itemRepository: ItemRepository): LiveDataInteractor<Resource<Item>, AddItemUseCase.Params>() {
+class AddItemUseCase(private val repository: ItemRepository): LiveDataInteractor<Resource<Item>, AddItemUseCase.Params>() {
 
     override fun build(params: Params?): LiveData<Resource<Item>> {
         val state = checkNotNull(params) { "Params must not be null" }
         check(!state.item.createdAt.after(Date())) { "Item must not be created with timestamp in the future" }
 
-        return itemRepository.addItem(state.item)
+        return repository.addItem(state.item)
     }
 
     data class Params(val item: Item)

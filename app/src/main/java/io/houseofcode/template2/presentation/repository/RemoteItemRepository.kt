@@ -1,13 +1,14 @@
 package io.houseofcode.template2.presentation.repository
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import io.houseofcode.template2.R
 import io.houseofcode.template2.TemplateApp
 import io.houseofcode.template2.data.ItemService
 import io.houseofcode.template2.data.getResponseResource
-import io.houseofcode.template2.domain.model.LoginCredentials
-import io.houseofcode.template2.domain.model.LoginToken
 import io.houseofcode.template2.domain.model.Item
+import io.houseofcode.template2.domain.model.LoginCredentials
 import io.houseofcode.template2.domain.model.Resource
 import io.houseofcode.template2.domain.repository.ItemRepository
 import kotlinx.coroutines.CoroutineScope
@@ -19,21 +20,22 @@ import java.io.File
 /**
  * Implementation of item repository for remote data access.
  * A cache, handled by OkHttp, is used when a cache directory is provided.
- * @param isDebug True of build type is debug.
+ * @param context Application context.
  * @param cacheFile Cache directory.
+ * @param getToken Function for getting login token.
  * @param isNetworkAvailable Function for checking is network currently is available.
  */
-class RemoteItemRepository(isDebug: Boolean,
+class RemoteItemRepository(val context: Context,
                            cacheFile: File?,
-                           getToken: () -> LoginToken?,
+                           getToken: () -> String?,
                            isNetworkAvailable: () -> Boolean): ItemRepository {
 
     // Create service from data layer.
     // This is the only place where we should access the data layer from the presentation layer.
-    private val itemService = ItemService.create(isDebug, cacheFile, getToken, isNetworkAvailable)
+    private val itemService = ItemService.create(cacheFile, getToken, isNetworkAvailable, context.getString(R.string.error_no_network))
 
-    override fun login(email: String, password: String): LiveData<Resource<LoginToken>> {
-        val mutableLiveData = MutableLiveData<Resource<LoginToken>>()
+    override fun login(email: String, password: String): LiveData<Resource<String>> {
+        val mutableLiveData = MutableLiveData<Resource<String>>()
 
         CoroutineScope(Dispatchers.Main).launch {
             mutableLiveData.value = withContext(Dispatchers.IO) {
@@ -42,14 +44,30 @@ class RemoteItemRepository(isDebug: Boolean,
                         email,
                         password
                     )
-                ).getResponseResource()
+                ).getResponseResource(
+                    onSuccess = { loginToken ->
+                        Resource.success(loginToken?.token)
+                    },
+                    onFailed = { errorMessage, loginToken ->
+                        Resource.error(
+                            errorMessage ?: context.getString(R.string.error_request_login),
+                            loginToken?.token
+                        )
+                    },
+                    onException = { error, loginToken ->
+                        Resource.error(
+                            error.localizedMessage ?: context.getString(R.string.error_request_login),
+                            loginToken?.token
+                        )
+                    }
+                )
             }
         }
 
         return mutableLiveData
     }
 
-    override fun saveToken(loginToken: LoginToken) {
+    override fun saveToken(loginToken: String) {
         // Save token into [SharedPreferences].
         TemplateApp.pref.loginToken = loginToken
     }
@@ -59,7 +77,23 @@ class RemoteItemRepository(isDebug: Boolean,
 
         CoroutineScope(Dispatchers.Main).launch {
             mutableLiveData.value = withContext(Dispatchers.IO) {
-                itemService.getItem(id).getResponseResource()
+                itemService.getItem(id).getResponseResource(
+                    onSuccess = { item ->
+                        Resource.success(item)
+                    },
+                    onFailed = { errorMessage, item ->
+                        Resource.error(
+                            errorMessage ?: context.getString(R.string.error_request_get_item),
+                            item
+                        )
+                    },
+                    onException = { error, item ->
+                        Resource.error(
+                            error.localizedMessage ?: context.getString(R.string.error_request_get_item),
+                            item
+                        )
+                    }
+                )
             }
         }
 
@@ -71,7 +105,23 @@ class RemoteItemRepository(isDebug: Boolean,
 
         CoroutineScope(Dispatchers.Main).launch {
             mutableLiveData.value = withContext(Dispatchers.IO) {
-                itemService.getItems().getResponseResource()
+                itemService.getItems().getResponseResource(
+                    onSuccess = { items ->
+                        Resource.success(items)
+                    },
+                    onFailed = { errorMessage, items ->
+                        Resource.error(
+                            errorMessage ?: context.getString(R.string.error_request_get_items),
+                            items
+                        )
+                    },
+                    onException = { error, items ->
+                        Resource.error(
+                            error.localizedMessage ?: context.getString(R.string.error_request_get_items),
+                            items
+                        )
+                    }
+                )
             }
         }
 
@@ -83,7 +133,23 @@ class RemoteItemRepository(isDebug: Boolean,
 
         CoroutineScope(Dispatchers.Main).launch {
             mutableLiveData.value = withContext(Dispatchers.IO) {
-                itemService.addItem(item).getResponseResource()
+                itemService.addItem(item).getResponseResource(
+                    onSuccess = { item ->
+                        Resource.success(item)
+                    },
+                    onFailed = { errorMessage, item ->
+                        Resource.error(
+                            errorMessage ?: context.getString(R.string.error_request_add_item),
+                            item
+                        )
+                    },
+                    onException = { error, item ->
+                        Resource.error(
+                            error.localizedMessage ?: context.getString(R.string.error_request_add_item),
+                            item
+                        )
+                    }
+                )
             }
         }
 

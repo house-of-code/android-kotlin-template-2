@@ -2,9 +2,8 @@ package io.houseofcode.template2
 
 import android.app.Application
 import android.content.Context
-import android.content.Intent
-import androidx.core.content.ContextCompat
 import androidx.room.Room
+import com.facebook.stetho.Stetho
 import io.houseofcode.template2.data.ItemService
 import io.houseofcode.template2.presentation.repository.CachedItemRepository
 import io.houseofcode.template2.presentation.repository.RemoteItemRepository
@@ -36,17 +35,10 @@ class TemplateApp: Application() {
             // Clear data in persistent storage.
             pref.logout()
 
-            // Check if login is already shown.
-            if (!LoginActivity.isActive) {
-                // Go to login.
-                ContextCompat.startActivity(
-                    context,
-                    Intent(context, LoginActivity::class.java).apply {
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    },
-                    null
-                )
-            }
+            // Go to login.
+            context.startActivity(
+                LoginActivity.newIntent(context)
+            )
         }
     }
 
@@ -55,6 +47,7 @@ class TemplateApp: Application() {
 
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
+            Stetho.initializeWithDefaults(this)
         }
 
         // Create simple persistent storage.
@@ -70,7 +63,7 @@ class TemplateApp: Application() {
         // NB! Only one of the following two repositories should be necessary in most projects.
         // Create remote item repository.
         remoteRepository = RemoteItemRepository(
-            BuildConfig.DEBUG,
+            this,
             this.cacheDir,
             { pref.loginToken },
             { this.isNetworkAvailable() }
@@ -78,9 +71,9 @@ class TemplateApp: Application() {
 
         // Create cached remote item repository.
         cachedRepository = CachedItemRepository(
+            this,
             cacheDatabase.cacheEntryDao(),
             cacheDatabase.itemDao(),
-            BuildConfig.DEBUG,
             { pref.loginToken },
             { this.isNetworkAvailable() }
         )

@@ -1,7 +1,9 @@
 package io.houseofcode.template2.presentation.repository
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import io.houseofcode.template2.R
 import io.houseofcode.template2.TemplateApp
 import io.houseofcode.template2.data.ItemService
 import io.houseofcode.template2.data.dao.CacheEntryDao
@@ -10,9 +12,8 @@ import io.houseofcode.template2.data.getResponseResource
 import io.houseofcode.template2.data.mapToEntity
 import io.houseofcode.template2.data.mapToItem
 import io.houseofcode.template2.data.model.CacheEntry
-import io.houseofcode.template2.domain.model.LoginCredentials
 import io.houseofcode.template2.domain.model.Item
-import io.houseofcode.template2.domain.model.LoginToken
+import io.houseofcode.template2.domain.model.LoginCredentials
 import io.houseofcode.template2.domain.model.Resource
 import io.houseofcode.template2.domain.repository.ItemRepository
 import kotlinx.coroutines.CoroutineScope
@@ -26,19 +27,24 @@ import kotlin.math.abs
 /**
  * Implementation of item repository for cached remote data access.
  * Responses from remote service is cached, if old cache is expired, and returned when available.
+ * @param context Application context.
+ * @param cacheDao Data access object of cache entries, storing when a request was last cached.
+ * @param itemDao Data access object of cached items, storing item responses as cache.
+ * @param getToken Function for getting login token.
+ * @param isNetworkAvailable Function for checking is network currently is available.
  */
-class CachedItemRepository(private val cacheDao: CacheEntryDao,
+class CachedItemRepository(val context: Context,
+                           private val cacheDao: CacheEntryDao,
                            private val itemDao: ItemDao,
-                           isDebug: Boolean,
-                           getToken: () -> LoginToken?,
+                           getToken: () -> String?,
                            isNetworkAvailable: () -> Boolean): ItemRepository {
 
     // Create service from data layer with service caching disabled.
     // This is the only place where we should access the data layer from the presentation layer.
-    private val itemService = ItemService.create(isDebug, null, getToken, isNetworkAvailable)
+    private val itemService = ItemService.create(null, getToken, isNetworkAvailable, context.getString(R.string.error_no_network))
 
-    override fun login(email: String, password: String): LiveData<Resource<LoginToken>> {
-        val mutableLiveData = MutableLiveData<Resource<LoginToken>>()
+    override fun login(email: String, password: String): LiveData<Resource<String>> {
+        val mutableLiveData = MutableLiveData<Resource<String>>()
 
         CoroutineScope(Dispatchers.Main).launch {
             // We do not cache the login response as token is stored manually for later requests.
@@ -48,14 +54,30 @@ class CachedItemRepository(private val cacheDao: CacheEntryDao,
                         email,
                         password
                     )
-                ).getResponseResource()
+                ).getResponseResource(
+                    onSuccess = { loginToken ->
+                        Resource.success(loginToken?.token)
+                    },
+                    onFailed = { errorMessage, loginToken ->
+                        Resource.error(
+                            errorMessage ?: context.getString(R.string.error_request_login),
+                            loginToken?.token
+                        )
+                    },
+                    onException = { error, loginToken ->
+                        Resource.error(
+                            error.localizedMessage ?: context.getString(R.string.error_request_login),
+                            loginToken?.token
+                        )
+                    }
+                )
             }
         }
 
         return mutableLiveData
     }
 
-    override fun saveToken(loginToken: LoginToken) {
+    override fun saveToken(loginToken: String) {
         // Save token into [SharedPreferences].
         TemplateApp.pref.loginToken = loginToken
     }
@@ -69,7 +91,25 @@ class CachedItemRepository(private val cacheDao: CacheEntryDao,
                 cacheKey = cacheKey,
                 mutableLiveData = mutableLiveData,
                 getCachedEntity = { itemDao.getItem(id)?.mapToItem() },
-                getRemoteEntity = { itemService.getItem(id).getResponseResource() },
+                getRemoteEntity = {
+                    itemService.getItem(id).getResponseResource(
+                        onSuccess = { item ->
+                            Resource.success(item)
+                        },
+                        onFailed = { errorMessage, item ->
+                            Resource.error(
+                                errorMessage ?: context.getString(R.string.error_request_get_item),
+                                item
+                            )
+                        },
+                        onException = { error, item ->
+                            Resource.error(
+                                error.localizedMessage ?: context.getString(R.string.error_request_get_item),
+                                item
+                            )
+                        }
+                    )
+                },
                 addToCache = { item -> itemDao.addItem(item.mapToEntity()) },
                 cacheMinutes = 1
             )
@@ -87,7 +127,25 @@ class CachedItemRepository(private val cacheDao: CacheEntryDao,
                 cacheKey = cacheKey,
                 mutableLiveData = mutableLiveData,
                 getCachedEntity = { itemDao.getItems().map { it.mapToItem() } },
-                getRemoteEntity = { itemService.getItems().getResponseResource() },
+                getRemoteEntity = {
+                    itemService.getItems().getResponseResource(
+                        onSuccess = { items ->
+                            Resource.success(items)
+                        },
+                        onFailed = { errorMessage, items ->
+                            Resource.error(
+                                errorMessage ?: context.getString(R.string.error_request_get_items),
+                                items
+                            )
+                        },
+                        onException = { error, items ->
+                            Resource.error(
+                                error.localizedMessage ?: context.getString(R.string.error_request_get_items),
+                                items
+                            )
+                        }
+                    )
+                },
                 addToCache = { items -> itemDao.addItems(items.map { it.mapToEntity() }) },
                 cacheMinutes = 1
             )
@@ -102,7 +160,25 @@ class CachedItemRepository(private val cacheDao: CacheEntryDao,
         CoroutineScope(Dispatchers.Main).launch {
             putCacheEntity(
                 mutableLiveData = mutableLiveData,
-                putRemoteEntity = { itemService.addItem(item).getResponseResource() },
+                putRemoteEntity = {
+                    itemService.addItem(item).getResponseResource(
+                        onSuccess = { item ->
+                            Resource.success(item)
+                        },
+                        onFailed = { errorMessage, item ->
+                            Resource.error(
+                                errorMessage ?: context.getString(R.string.error_request_add_item),
+                                item
+                            )
+                        },
+                        onException = { error, item ->
+                            Resource.error(
+                                error.localizedMessage ?: context.getString(R.string.error_request_add_item),
+                                item
+                            )
+                        }
+                    )
+                },
                 addToCache = { returnedItem -> itemDao.addItem(returnedItem.mapToEntity()) }
             )
         }

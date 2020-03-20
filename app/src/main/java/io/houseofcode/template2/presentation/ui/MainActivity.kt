@@ -1,5 +1,7 @@
 package io.houseofcode.template2.presentation.ui
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -18,11 +20,25 @@ import timber.log.Timber
 
 class MainActivity: AuthActivity(), MainContract.View {
 
+    companion object {
+        /**
+         * Get intent to start main activity.
+         * The new activity will become the new stack root, clearing any previous back history.
+         */
+        fun newIntent(context: Context): Intent {
+            return Intent(context, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+        }
+    }
+
     private lateinit var presenter: MainContract.Presenter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        title = getString(R.string.activity_label_main)
 
         presenter = MainPresenter(this)
         presenter.attach(this)

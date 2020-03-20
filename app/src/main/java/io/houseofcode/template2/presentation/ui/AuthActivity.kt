@@ -13,7 +13,7 @@ abstract class AuthActivity: AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Check if is login token exists.
-        if (TemplateApp.pref.loginToken?.token.isNullOrBlank()) {
+        if (TemplateApp.pref.loginToken.isNullOrBlank()) {
             Timber.w("Login token not found, logging out ...")
 
             // Logout and send user to login.

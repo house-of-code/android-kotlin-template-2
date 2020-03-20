@@ -16,4 +16,15 @@
     <string name="first_run_toggle_on">Yes</string>
     <string name="first_run_toggle_off">No</string>
     <string name="menu_main_logout">Logout</string>
+
+    <!-- Error messages -->
+    <string name="error_no_network">No internet connection available</string>
+    <string name="error_request_login">Error during login</string>
+    <string name="error_request_get_item">Issue getting item</string>
+    <string name="error_request_get_items">Issue getting items</string>
+    <string name="error_request_add_item">Issue adding item</string>
+
+    <!-- Hints -->
+    <string name="hint_email">Email</string>
+    <string name="hint_password">Password</string>
 </resources>
