@@ -1,6 +1,7 @@
 package io.houseofcode.template2.domain.usecase
 
 import androidx.lifecycle.MutableLiveData
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.mock
@@ -12,9 +13,11 @@ import io.houseofcode.template2.domain.pushValue
 import io.houseofcode.template2.domain.repository.ItemRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Test
+import org.junit.runner.RunWith
 import java.util.*
 
 @ExperimentalCoroutinesApi
+@RunWith(AndroidJUnit4::class)
 class AddItemUseCaseTest: CoroutineTest() {
 
     private val items = arrayListOf<Item>()

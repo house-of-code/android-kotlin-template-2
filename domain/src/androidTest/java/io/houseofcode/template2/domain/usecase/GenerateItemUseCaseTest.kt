@@ -1,7 +1,7 @@
 package io.houseofcode.template2.domain.usecase
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import io.houseofcode.template2.domain.CoroutineTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Test
@@ -25,7 +25,7 @@ class GenerateItemUseCaseTest: CoroutineTest() {
         )
 
         // Evaluate result.
-        Truth.assertThat(item.id).isEqualTo(itemId)
-        Truth.assertThat(item.createdAt.time).isAtMost(Date().time)
+        assertThat(item.id).isEqualTo(itemId)
+        assertThat(item.createdAt.time).isAtMost(Date().time)
     }
 }

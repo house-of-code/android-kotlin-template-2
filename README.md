@@ -56,10 +56,13 @@ Data (`io.houseofcode.template2.data`):
 Domain (`io.houseofcode.template2.domain`):
 
 - `AddItemUseCase`, `GetItemsUseCase`, `GetItemUseCase`, `LoginUseCase`: Use cases with LiveData.
-- `GetFirstRunFlagUseCase`, `SetFirstRunFlagUseCase`: Use cases with custom subtype of LiveData.
-- `GenerateItemUseCase`: Use case with plain data.
-- `AddItemUseCaseTest`, `GenerateItemUseCaseTest`, `GetItemsUseCaseTest`, `GetItemUseCaseTest`, `LoginUseCaseTest`: Tests of relevant use cases.
+- `GetFirstRunFlagUseCase`, `SetFirstRunFlagUseCase`, `SetLoginTokenUseCase`: Use cases with Flow.
+- `ClearUserDataUseCase`, `GenerateItemUseCase`, `GetLoginTokenUserCase`: Use case with plain data.
 - `ItemRepository`: Interface of data repository's responsibilities, implemented in `CachedItemRepository` and `RemoteItemRepository`.
+- `PersistentStorageRepository`: Interface of local storage, implemented in `SharedPreferencesRepository`.
+- `AddItemUseCaseTest`, `ClearUserDataUseCaseTest`, `GenerateItemUseCaseTest`, `GetItemsUseCaseTest`, `GetItemUseCaseTest`, `LoginUseCaseTest`: Tests of relevant use cases.
+- `ItemRepositoryTest`, `PersistentStorageRepositoryTest`: Tests of repository integration.
+- `LiveDataTest`: Test of LiveData extensions.
 
 Presentation (`io.houseofcode.template2.presentation`):
 
@@ -68,6 +71,8 @@ Presentation (`io.houseofcode.template2.presentation`):
 - `ItemViewModel`, `SharedPreferencesViewModel`: View model executing use cases to perform actions.
 - `CachedItemRepository`, `RemoteItemRepository`: Two different implementations of repository from domain layer, accessed from `TemplateApp`.
 - `CacheDatabase`: Abstract class for creating caching database, exposes DAOs in `TemplateApp`.
+- `TemplateAppGlideModule`: Configuration of Glide image loading and caching.
+- `drawable/`, `layout/`, `menu/`, `values/`: Resource used by various parts of the system.
 
 
 Also make sure to take a look at all the example model classes, which are found here:
@@ -226,46 +231,15 @@ A [ViewModel](https://developer.android.com/topic/libraries/architecture/viewmod
 
 [LiveData](https://developer.android.com/topic/libraries/architecture/livedata) is an observable data class that ensures safe and automatic data communication.
 
-The two classes can be used in combination to provide data from a repository (real-time or request-response) to UI without having to deal with the lifecycle of the UI:
-
-```
-class UserViewModel : ViewModel() {
-
-    private lateinit var remoteService: RemoteService
-
-    fun getUsers(): LiveData<Resource<List<User>>> {
-        val data = MutableLiveData<Resource<List<User>>>()
-
-        CoroutineScope(Dispatchers.Main).launch {
-            data.value = getResource(remoteService.getUsers())
-        }
-
-        return data
-    }
-
-    private suspend fun <T> getResource(request: Deferred<Response<T>>): Resource<T> {
-        return withContext(Dispatchers.IO) {
-            val response = request.await()
-            if (response.isSuccessful) {
-                val responseBody = response.body()
-                if (responseBody != null) {
-                    Resource.success(responseBody)
-                } else {
-                    Resource.error("Request did not return any body")
-                }
-            } else {
-                Resource.error("Request was unsuccessful")
-            }
-        }
-    }
-}
-```
-
 See more in the links below:
 
 https://developer.android.com/topic/libraries/architecture/livedata
 
 https://developer.android.com/topic/libraries/architecture/viewmodel
+
+https://www.raywenderlich.com/10391019-livedata-tutorial-for-android-deep-dive
+
+https://proandroiddev.com/when-and-why-to-use-android-livedata-93d7dd949138
 
 
 ### Glide
@@ -289,14 +263,11 @@ Two repositories are exposed in the application class; One is a "regular" remote
 The cached responses are stored with [Android Room](https://developer.android.com/jetpack/androidx/releases/room) alongside a cache entry, which registers when a response was last cached based on a cache key.
 
 
-#### Debugging database
-To debug the caching database, check LogCat when the application starts for an entry like:
+#### Flipper for Android - debugging database, SharedPreferences and requests
 
-```
-D/DebugDB: Open http://xxx.xxx.x.xxx:8080 in your browser
-```
+To debug SharedPreferences, SQLite databases, layout or network traffic, download and run Flipper: https://fbflipper.com/
 
-If you are using an emulator, run `adb forward tcp:8080 tcp:8080` and open http://localhost:8080/.
+Make sure to run your application as debug variant, as it is disabled in the release variant.
 
 - - -
 
