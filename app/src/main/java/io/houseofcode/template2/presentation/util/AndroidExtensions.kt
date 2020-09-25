@@ -2,6 +2,8 @@ package io.houseofcode.template2.presentation.util
 
 import android.Manifest
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Matrix
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
@@ -38,4 +40,23 @@ fun Context.isNetworkAvailable(): Boolean {
         }
     }
     return result
+}
+
+/**
+ * Apply rotation on image and scale it to a max dimension (width or height).
+ */
+fun Bitmap.rotateAndScale(degrees: Float, maxDimension: Float = 1600f): Bitmap {
+    val matrix = Matrix().apply {
+        postRotate(degrees)
+        if (this@rotateAndScale.width > this@rotateAndScale.height) {
+            if (width > maxDimension) {
+                postScale((maxDimension / width), (maxDimension / width))
+            }
+        } else {
+            if (height > maxDimension) {
+                postScale((maxDimension / height), (maxDimension / height))
+            }
+        }
+    }
+    return Bitmap.createBitmap(this, 0, 0, this.width, this.height, matrix, true)
 }

@@ -5,17 +5,15 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import io.houseofcode.template2.R
 import io.houseofcode.template2.TemplateApp
-import io.houseofcode.template2.data.ItemService
+import io.houseofcode.template2.data.*
 import io.houseofcode.template2.data.dao.CacheEntryDao
 import io.houseofcode.template2.data.dao.ItemDao
-import io.houseofcode.template2.data.getResponseResource
-import io.houseofcode.template2.data.mapToEntity
-import io.houseofcode.template2.data.mapToItem
 import io.houseofcode.template2.data.model.CacheEntry
 import io.houseofcode.template2.domain.model.Item
 import io.houseofcode.template2.domain.model.LoginCredentials
 import io.houseofcode.template2.domain.model.Resource
 import io.houseofcode.template2.domain.repository.ItemRepository
+import io.houseofcode.template2.presentation.viewmodel.SharedPreferencesViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -30,18 +28,13 @@ import kotlin.math.abs
  * @param context Application context.
  * @param cacheDao Data access object of cache entries, storing when a request was last cached.
  * @param itemDao Data access object of cached items, storing item responses as cache.
- * @param getToken Function for getting login token.
- * @param isNetworkAvailable Function for checking is network currently is available.
+ * @param itemService Service from data layer.
  */
 class CachedItemRepository(val context: Context,
                            private val cacheDao: CacheEntryDao,
                            private val itemDao: ItemDao,
-                           getToken: () -> String?,
-                           isNetworkAvailable: () -> Boolean): ItemRepository {
-
-    // Create service from data layer with service caching disabled.
-    // This is the only place where we should access the data layer from the presentation layer.
-    private val itemService = ItemService.create(null, getToken, isNetworkAvailable, context.getString(R.string.error_no_network))
+                           private val itemService: ItemService,
+                           private val sharedPreferenceViewModel: SharedPreferencesViewModel): ItemRepository {
 
     override fun login(email: String, password: String): LiveData<Resource<String>> {
         val mutableLiveData = MutableLiveData<Resource<String>>()
@@ -49,12 +42,12 @@ class CachedItemRepository(val context: Context,
         CoroutineScope(Dispatchers.Main).launch {
             // We do not cache the login response as token is stored manually for later requests.
             mutableLiveData.value = withContext(Dispatchers.IO) {
-                itemService.login(
-                    LoginCredentials(
-                        email,
-                        password
-                    )
-                ).getResponseResource(
+                executeSafely(
+                    request = {
+                        itemService.login(
+                            LoginCredentials(email, password)
+                        )
+                    },
                     onSuccess = { loginToken ->
                         Resource.success(loginToken?.token)
                     },
@@ -64,10 +57,9 @@ class CachedItemRepository(val context: Context,
                             loginToken?.token
                         )
                     },
-                    onException = { error, loginToken ->
+                    onException = { error ->
                         Resource.error(
-                            error.localizedMessage ?: context.getString(R.string.error_request_login),
-                            loginToken?.token
+                            error.localizedMessage ?: context.getString(R.string.error_request_login)
                         )
                     }
                 )
@@ -79,7 +71,7 @@ class CachedItemRepository(val context: Context,
 
     override fun saveToken(loginToken: String) {
         // Save token into [SharedPreferences].
-        TemplateApp.pref.loginToken = loginToken
+        sharedPreferenceViewModel.setLoginToken(loginToken)
     }
 
     override fun getItem(id: String): LiveData<Resource<Item>> {
@@ -92,7 +84,8 @@ class CachedItemRepository(val context: Context,
                 mutableLiveData = mutableLiveData,
                 getCachedEntity = { itemDao.getItem(id)?.mapToItem() },
                 getRemoteEntity = {
-                    itemService.getItem(id).getResponseResource(
+                    executeSafely(
+                        request = { itemService.getItem(id) },
                         onSuccess = { item ->
                             Resource.success(item)
                         },
@@ -102,10 +95,9 @@ class CachedItemRepository(val context: Context,
                                 item
                             )
                         },
-                        onException = { error, item ->
+                        onException = { error ->
                             Resource.error(
-                                error.localizedMessage ?: context.getString(R.string.error_request_get_item),
-                                item
+                                error.localizedMessage ?: context.getString(R.string.error_request_get_item)
                             )
                         }
                     )
@@ -128,7 +120,8 @@ class CachedItemRepository(val context: Context,
                 mutableLiveData = mutableLiveData,
                 getCachedEntity = { itemDao.getItems().map { it.mapToItem() } },
                 getRemoteEntity = {
-                    itemService.getItems().getResponseResource(
+                    executeSafely(
+                        request = { itemService.getItems() },
                         onSuccess = { items ->
                             Resource.success(items)
                         },
@@ -138,10 +131,9 @@ class CachedItemRepository(val context: Context,
                                 items
                             )
                         },
-                        onException = { error, items ->
+                        onException = { error ->
                             Resource.error(
-                                error.localizedMessage ?: context.getString(R.string.error_request_get_items),
-                                items
+                                error.localizedMessage ?: context.getString(R.string.error_request_get_items)
                             )
                         }
                     )
@@ -161,7 +153,8 @@ class CachedItemRepository(val context: Context,
             putCacheEntity(
                 mutableLiveData = mutableLiveData,
                 putRemoteEntity = {
-                    itemService.addItem(item).getResponseResource(
+                    executeSafely(
+                        request = { itemService.addItem(item) },
                         onSuccess = { item ->
                             Resource.success(item)
                         },
@@ -171,7 +164,7 @@ class CachedItemRepository(val context: Context,
                                 item
                             )
                         },
-                        onException = { error, item ->
+                        onException = { error ->
                             Resource.error(
                                 error.localizedMessage ?: context.getString(R.string.error_request_add_item),
                                 item

@@ -1,36 +1,46 @@
 package io.houseofcode.template2.data
 
 import io.houseofcode.template2.domain.model.Resource
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import retrofit2.Response
 
 /**
- * Transform response wrapper to resource.
- * 3 higher-order functions are provided for transforming response:
- * - Successful request: Transform original response
- * - Failed request: Transform response with returned error message
- * - Thrown exception: Transform response with caught exception
+ * Execute request safely while catching any thrown exception or error.
+ * @param request Request that can throw exceptions when executed.
+ * @param onSuccess Callback for successful response.
+ * @param onFailed Callback for failed/error response.
+ * @param onException Callback for caught exceptions.
  */
-fun <T, R> Response<T>.getResponseResource(
-        onSuccess: (T?) -> Resource<R>,
-        onFailed: (errorMessage: String?, T?) -> Resource<R>,
-        onException: (error: Exception, T?) -> Resource<R>
+suspend fun <T, R> executeSafely(
+    request: suspend () -> Response<T>,
+    onSuccess: (T?) -> Resource<R>,
+    onFailed: (errorMessage: String?, T?) -> Resource<R>,
+    onException: (error: Exception) -> Resource<R>
 ): Resource<R> {
-    // Make sure to catch any exception thrown during request.
     return try {
+        // Perform request.
+        val response = request()
         // Check if request was successful.
-        if (this.isSuccessful) {
+        if (response.isSuccessful) {
             // Return response body.
-            onSuccess(this.body())
+            onSuccess(response.body())
         } else {
-            // Get message from error response.
-            var errorMessage: String? = null
-            this.errorBody()?.string()?.let { rawErrorBody ->
-                errorMessage = JSONObject(rawErrorBody).getString("message")
+            // Get message from error response without blocking main thread.
+            val errorMessage = withContext(Dispatchers.IO) {
+                // Get JSON error response.
+                response.errorBody()?.string()?.let { rawJsonError ->
+                    // Extract error message from error response.
+                    // This needs to be adjusted to how each API handles error messages, if any.
+                    JSONObject(rawJsonError).getString("message")
+                }
             }
-            onFailed(errorMessage ?: "Fejl", null)
+            // Return error message.
+            onFailed(errorMessage ?: "Unsuccessful network request", response.body())
         }
     } catch (error: Exception) {
-        onException(error, this.body())
+        // Return caught exception, e.g. from interceptors.
+        onException(error)
     }
 }

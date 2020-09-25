@@ -15,6 +15,9 @@
     <string name="first_run_label">Is this the first run?</string>
     <string name="first_run_toggle_on">Yes</string>
     <string name="first_run_toggle_off">No</string>
+    <string name="image_picker_button">Get image</string>
+    <string name="image_capture_button">Capture image</string>
+    <string name="image_select_preview_content_desc">Preview of chosen image</string>
     <string name="menu_main_logout">Logout</string>
 
     <!-- Error messages -->

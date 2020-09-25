@@ -2,9 +2,9 @@ package io.houseofcode.template2.presentation.feature.login
 
 import io.houseofcode.template2.presentation.feature.BaseActivityPresenter
 
-class LoginContract {
+interface LoginContract {
 
-    interface Presenter : BaseActivityPresenter {
+    interface Presenter: BaseActivityPresenter<LoginPresenter.Params> {
 
         /**
          * Login with email and password

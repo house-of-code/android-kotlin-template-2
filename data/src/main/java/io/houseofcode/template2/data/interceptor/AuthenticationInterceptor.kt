@@ -2,6 +2,7 @@ package io.houseofcode.template2.data.interceptor
 
 import okhttp3.Interceptor
 import okhttp3.Response
+import java.io.IOException
 
 /**
  * Interceptor for authentication.
@@ -23,16 +24,26 @@ class AuthenticationInterceptor(val getToken: () -> String?): Interceptor {
         // Get token.
         val loginToken = getToken()
 
-        return if (placeholderAuthHeader != null && loginToken != null ) {
-            // Replace placeholder authentication header.
-            chain.proceed(originalRequest.newBuilder()
-                .removeHeader(AUTH_HEADER_KEY)
-                .addHeader(AUTH_HEADER_KEY, "Bearer $loginToken")
-                .build())
-        } else {
-            // Request does not require authentication, proceed with original request.
-            chain.proceed(originalRequest)
+        // Builder for request we might want to modify.
+        val requestBuilder = originalRequest.newBuilder()
+
+        if (placeholderAuthHeader != null) {
+            // Remove placeholder authentication header.
+            requestBuilder.removeHeader(AUTH_HEADER_KEY)
+
+            if (loginToken != null) {
+                // Add authentication token as header.
+                requestBuilder.addHeader(AUTH_HEADER_KEY, "Bearer $loginToken")
+            } else {
+                // Throw error, intercept method can only handle IOException.
+                throw IOException("Login token not set on request with required authentication: [${originalRequest.method}] ${originalRequest.url.encodedPath}")
+            }
         }
+
+        // Return request.
+        return chain.proceed(
+            requestBuilder.build()
+        )
     }
 
 }

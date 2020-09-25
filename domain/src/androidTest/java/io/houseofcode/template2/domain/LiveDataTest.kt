@@ -3,6 +3,7 @@ package io.houseofcode.template2.domain
 import androidx.lifecycle.MutableLiveData
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import io.houseofcode.template2.domain.util.combineLatest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Test
 import org.junit.runner.RunWith

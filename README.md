@@ -12,8 +12,14 @@ This template is a renewed version of the previous Clean Architecture template, 
 
 ##### Step 1: Clone project into new folder
 
+Clone template project into new project folder:
 ```
-git clone git@bitbucket.org:houseofcode/android-kotlin-template-2.git my-new-project
+git clone git@bitbucket.org:houseofcode/android-kotlin-template-2.git my-new-project && cd my-new-project/
+```
+
+To avoid accidentally pushing code to the template project, remove the remote URL from the new project:
+```
+git remote rm origin
 ```
 
 ##### Step 2: Change application id and package name
@@ -26,7 +32,7 @@ Open `app/build.gradle` and change `versionCode`, `versionName` and `outputFileN
 
 ##### Step 4: Generate new keystore
 
-Go to `Build` > `Generate Signed Bundle` to generate a new keystore for the project and update the passwords and alias in `keystore.properties`. 
+Go to `Build` > `Generate Signed Bundle` to generate a new keystore for the project and update the passwords and alias in `keystore.properties`.
 
 See more about signing in [App Signing](#app-signing) below.
 
@@ -68,6 +74,23 @@ Also make sure to take a look at all the example model classes, which are found 
 
 - `io.houseofcode.template2.data.model`
 - `io.houseofcode.template2.domain.model`
+
+##### Step 7: Push Git repository
+
+Set remote URL (use the remote URL from your newly create repository):
+```
+git remote add origin git@bitbucket.org:houseofcode/my-new-project.git
+```
+
+Check remote URL is correct before pushing your code:
+```
+git remote -v
+```
+
+Push your code:
+```
+git push -u origin master
+```
 
 
 - - -

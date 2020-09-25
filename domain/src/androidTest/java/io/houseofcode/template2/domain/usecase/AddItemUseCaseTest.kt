@@ -22,12 +22,12 @@ class AddItemUseCaseTest: CoroutineTest() {
     // Get mocked repository.
     private val repository: ItemRepository = mock {
         onBlocking { addItem(any<Item>()) }.thenAnswer { invocation ->
-            (invocation.arguments[0] as Item).let { item ->
-                items.add(item)
-                MutableLiveData<Resource<Item>>().pushValue(
-                    Resource(Resource.Status.SUCCESS, item, null)
-                )
-            }
+            val item = invocation.getArgument(0, Item::class.java)
+
+            items.add(item)
+            MutableLiveData<Resource<Item>>().pushValue(
+                Resource(Resource.Status.SUCCESS, item, null)
+            )
         }
     }
 
@@ -37,6 +37,7 @@ class AddItemUseCaseTest: CoroutineTest() {
     @Test
     fun testAddItemCompleted() {
         val item = Item("0", "Item 0", Date())
+
         // Execute use case and receive result as LiveData.
         val liveData = useCase.execute(AddItemUseCase.Params(item))
         // Extract value from LiveData once.
@@ -47,6 +48,6 @@ class AddItemUseCaseTest: CoroutineTest() {
         assertThat(resource.data).isInstanceOf(Item::class.java)
         assertThat(resource.data).isEqualTo(item)
 
-        assertThat(resource.data?.id).isEqualTo("0")
+        assertThat(resource.data?.id).isEqualTo(item.id)
     }
 }

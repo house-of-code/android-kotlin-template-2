@@ -4,47 +4,40 @@ import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import io.houseofcode.template2.R
-import io.houseofcode.template2.TemplateApp
 import io.houseofcode.template2.data.ItemService
-import io.houseofcode.template2.data.getResponseResource
+import io.houseofcode.template2.data.executeSafely
 import io.houseofcode.template2.domain.model.Item
 import io.houseofcode.template2.domain.model.LoginCredentials
 import io.houseofcode.template2.domain.model.Resource
 import io.houseofcode.template2.domain.repository.ItemRepository
+import io.houseofcode.template2.presentation.viewmodel.SharedPreferencesViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 
 /**
  * Implementation of item repository for remote data access.
  * A cache, handled by OkHttp, is used when a cache directory is provided.
  * @param context Application context.
- * @param cacheFile Cache directory.
- * @param getToken Function for getting login token.
- * @param isNetworkAvailable Function for checking is network currently is available.
+ * @param itemService Service from data layer, where we can perform requests.
+ * @param sharedPreferenceViewModel Local storage for saving persistent data.
  */
 class RemoteItemRepository(val context: Context,
-                           cacheFile: File?,
-                           getToken: () -> String?,
-                           isNetworkAvailable: () -> Boolean): ItemRepository {
-
-    // Create service from data layer.
-    // This is the only place where we should access the data layer from the presentation layer.
-    private val itemService = ItemService.create(cacheFile, getToken, isNetworkAvailable, context.getString(R.string.error_no_network))
+                           private val itemService: ItemService,
+                           private val sharedPreferenceViewModel: SharedPreferencesViewModel): ItemRepository {
 
     override fun login(email: String, password: String): LiveData<Resource<String>> {
         val mutableLiveData = MutableLiveData<Resource<String>>()
 
         CoroutineScope(Dispatchers.Main).launch {
             mutableLiveData.value = withContext(Dispatchers.IO) {
-                itemService.login(
-                    LoginCredentials(
-                        email,
-                        password
-                    )
-                ).getResponseResource(
+                executeSafely(
+                    request = {
+                        itemService.login(
+                            LoginCredentials(email, password)
+                        )
+                    },
                     onSuccess = { loginToken ->
                         Resource.success(loginToken?.token)
                     },
@@ -54,10 +47,9 @@ class RemoteItemRepository(val context: Context,
                             loginToken?.token
                         )
                     },
-                    onException = { error, loginToken ->
+                    onException = { error ->
                         Resource.error(
-                            error.localizedMessage ?: context.getString(R.string.error_request_login),
-                            loginToken?.token
+                            error.localizedMessage ?: context.getString(R.string.error_request_login)
                         )
                     }
                 )
@@ -69,7 +61,7 @@ class RemoteItemRepository(val context: Context,
 
     override fun saveToken(loginToken: String) {
         // Save token into [SharedPreferences].
-        TemplateApp.pref.loginToken = loginToken
+        sharedPreferenceViewModel.setLoginToken(loginToken)
     }
 
     override fun getItem(id: String): LiveData<Resource<Item>> {
@@ -77,7 +69,8 @@ class RemoteItemRepository(val context: Context,
 
         CoroutineScope(Dispatchers.Main).launch {
             mutableLiveData.value = withContext(Dispatchers.IO) {
-                itemService.getItem(id).getResponseResource(
+                executeSafely(
+                    request = { itemService.getItem(id) },
                     onSuccess = { item ->
                         Resource.success(item)
                     },
@@ -87,10 +80,9 @@ class RemoteItemRepository(val context: Context,
                             item
                         )
                     },
-                    onException = { error, item ->
+                    onException = { error ->
                         Resource.error(
-                            error.localizedMessage ?: context.getString(R.string.error_request_get_item),
-                            item
+                            error.localizedMessage ?: context.getString(R.string.error_request_get_item)
                         )
                     }
                 )
@@ -105,7 +97,8 @@ class RemoteItemRepository(val context: Context,
 
         CoroutineScope(Dispatchers.Main).launch {
             mutableLiveData.value = withContext(Dispatchers.IO) {
-                itemService.getItems().getResponseResource(
+                executeSafely(
+                    request = { itemService.getItems() },
                     onSuccess = { items ->
                         Resource.success(items)
                     },
@@ -115,10 +108,9 @@ class RemoteItemRepository(val context: Context,
                             items
                         )
                     },
-                    onException = { error, items ->
+                    onException = { error ->
                         Resource.error(
-                            error.localizedMessage ?: context.getString(R.string.error_request_get_items),
-                            items
+                            error.localizedMessage ?: context.getString(R.string.error_request_get_items)
                         )
                     }
                 )
@@ -133,7 +125,8 @@ class RemoteItemRepository(val context: Context,
 
         CoroutineScope(Dispatchers.Main).launch {
             mutableLiveData.value = withContext(Dispatchers.IO) {
-                itemService.addItem(item).getResponseResource(
+                executeSafely(
+                    request = { itemService.addItem(item) },
                     onSuccess = { item ->
                         Resource.success(item)
                     },
@@ -143,7 +136,7 @@ class RemoteItemRepository(val context: Context,
                             item
                         )
                     },
-                    onException = { error, item ->
+                    onException = { error ->
                         Resource.error(
                             error.localizedMessage ?: context.getString(R.string.error_request_add_item),
                             item

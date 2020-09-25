@@ -10,7 +10,7 @@ import java.util.*
 class GenerateItemUseCase: GenericInteractor<Item, GenerateItemUseCase.Params>() {
 
     override fun build(params: Params?): Item {
-        val state = checkNotNull(params)
+        val state = checkNotNull(params) { "Params must not be null" }
 
         return Item(state.itemId, "Item ${state.itemId}", Date())
     }

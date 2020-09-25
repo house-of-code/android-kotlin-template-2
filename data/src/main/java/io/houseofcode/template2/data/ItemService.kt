@@ -1,6 +1,5 @@
 package io.houseofcode.template2.data
 
-import com.facebook.stetho.okhttp3.StethoInterceptor
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.GsonBuilder
 import io.houseofcode.template2.data.interceptor.AuthenticationInterceptor
@@ -9,6 +8,7 @@ import io.houseofcode.template2.data.model.LoginToken
 import io.houseofcode.template2.domain.model.Item
 import io.houseofcode.template2.domain.model.LoginCredentials
 import okhttp3.Cache
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import retrofit2.Response
 import retrofit2.Retrofit
@@ -29,41 +29,63 @@ interface ItemService {
         // Date format used in service.
         private const val DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'"
 
-        // HTTP client set when creating service.
-        var client: OkHttpClient? = null
-
         /**
-         * Create service for example API.
-         * This service provides basic logging of requests, parsing of dates and conversion of field names.
+         * Create service for example API with optional default caching.
+         * All responses are mocked in ItemMockInterceptor.
          * @param cacheFile Optional cache file if requests should be cached by OkHttp.
+         * @param debugNetworkInterceptor
          * @param getToken Function for retrieving login token.
          * @param isNetworkAvailable Higher-order function for determining if network is available.
-         * @return Test service.
+         * @param noNetworkErrorMessage Optional message for missing network connection.
+         * @param cacheMaxSize Optional max custom size of cache in bytes.
+         * @return Configured client with mocked responses.
          */
-        fun create(cacheFile: File?,
-                   getToken: () -> String?,
-                   isNetworkAvailable: () -> Boolean,
-                   noNetworkErrorMessage: String? = "Network connection not available"): ItemService {
-            val cacheMaxSize: Long = 15 * 1024 * 1024 // 15 mb
+        fun createOkHttpClient(cacheFile: File?,
+                               debugNetworkInterceptor: Interceptor?,
+                               getToken: () -> String?,
+                               isNetworkAvailable: () -> Boolean,
+                               noNetworkErrorMessage: String? = "Network connection not available",
+                               cacheMaxSize: Long = 15 * 1024 * 1024): OkHttpClient.Builder {
+            return OkHttpClient.Builder().apply {
 
-            client = OkHttpClient.Builder()
-                .addInterceptor(AuthenticationInterceptor { getToken() })
-                .addInterceptor { chain ->
+                // Add authentication header to authenticated requests.
+                addInterceptor(AuthenticationInterceptor { getToken() })
+
+                // Interceptor for checking if network connection is available.
+                addInterceptor { chain ->
                     if (!isNetworkAvailable()) {
                         throw UnknownHostException(noNetworkErrorMessage)
                     }
                     chain.proceed(chain.request())
                 }
-                .addNetworkInterceptor( StethoInterceptor() )
-                .addInterceptor(ItemMockInterceptor())
-                .cache(cacheFile?.let { Cache(it, cacheMaxSize) })
-                .connectTimeout(60, TimeUnit.SECONDS)
-                .readTimeout(60, TimeUnit.SECONDS)
-                .build()
 
+                // Add interceptor for Flipper debugging tool.
+                if (debugNetworkInterceptor != null) {
+                    addInterceptor(debugNetworkInterceptor)
+                }
+
+                // Mocking responses.
+                addInterceptor(ItemMockInterceptor())
+
+                // Optional default caching.
+                cache(cacheFile?.let { Cache(it, cacheMaxSize) })
+
+                // Timeouts for long running requests.
+                connectTimeout(60, TimeUnit.SECONDS)
+                readTimeout(60, TimeUnit.SECONDS)
+            }
+        }
+
+        /**
+         * Create service for example API.
+         * This service provides basic logging of requests, parsing of dates and conversion of field names.
+         * @param okHttpClient Client on which to perform requests on base URL.
+         * @return Mocked test service.
+         */
+        fun createService(okHttpClient: OkHttpClient): ItemService {
             val retrofit = Retrofit.Builder()
                 .baseUrl(BASE_URL)
-                .client(client!!)
+                .client(okHttpClient)
                 .addConverterFactory(
                     GsonConverterFactory.create(
                         GsonBuilder()

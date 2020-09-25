@@ -18,7 +18,7 @@ abstract class CovariantInteractor<T: LiveData<*>, in Params: Any?> {
      * @param params Optional parameters for building use case.
      * @return LiveData subtype from use case.
      */
-    protected abstract fun build(params: Params? = null): T
+    protected abstract fun build(params: Params?): T
 
     /**
      * Post process data returned by #build.
@@ -28,7 +28,7 @@ abstract class CovariantInteractor<T: LiveData<*>, in Params: Any?> {
      * @param data Data for optional post processing.
      * @return Post processed data.
      */
-    protected open fun process(data: T): T = data
+    protected open fun process(data: T, params: Params?): T = data
 
     /**
      * Overridable execution method for returning data as subtype of LiveData.
@@ -36,6 +36,6 @@ abstract class CovariantInteractor<T: LiveData<*>, in Params: Any?> {
      * @return Processed data returned from use case, wrapped as subtype of LiveData.
      */
     open fun execute(params: Params? = null): T {
-        return process(build(params))
+        return process(build(params), params)
     }
 }

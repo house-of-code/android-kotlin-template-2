@@ -3,8 +3,6 @@ package io.houseofcode.template2.domain.usecase
 import androidx.lifecycle.MutableLiveData
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.anyOrNull
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import io.houseofcode.template2.domain.CoroutineTest
@@ -15,7 +13,7 @@ import io.houseofcode.template2.domain.repository.ItemRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.ArgumentMatchers.*
+import org.mockito.ArgumentMatchers.anyString
 
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
@@ -32,10 +30,10 @@ class LoginUseCaseTest: CoroutineTest() {
             )
         )
         onBlocking { saveToken(anyString()) }.then { invocation ->
-            val loginToken = invocation.arguments.firstOrNull()
-            if (loginToken is String) {
+            invocation.getArgument<String>(0).let { loginToken ->
                 savedToken = loginToken
             }
+            return@then Unit
         }
     }
 

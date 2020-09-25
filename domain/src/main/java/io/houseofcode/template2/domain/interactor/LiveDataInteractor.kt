@@ -16,7 +16,7 @@ abstract class LiveDataInteractor<T, in Params: Any?> {
      * @param params Optional parameters for building use case and retrieving data response.
      * @return Raw data response from use case.
      */
-    protected abstract fun build(params: Params? = null): LiveData<T>
+    protected abstract fun build(params: Params?): LiveData<T>
 
     /**
      * Optional post processing of data returned by #build.
@@ -24,9 +24,10 @@ abstract class LiveDataInteractor<T, in Params: Any?> {
      * to improve testability of the applications features.
      * Data can be passed right through this method, if no post processing is necessary.
      * @param liveData Data for optional post processing.
+     *
      * @return Post processed data.
      */
-    protected open fun process(liveData: LiveData<T>): LiveData<T> = liveData
+    protected open fun process(liveData: LiveData<T>, params: Params?): LiveData<T> = liveData
 
     /**
      * Overridable execution method for returning data as LiveData.
@@ -34,8 +35,6 @@ abstract class LiveDataInteractor<T, in Params: Any?> {
      * @return Processed data returned from use case, wrapped as LiveData.
      */
     open fun execute(params: Params? = null): LiveData<T> {
-        return process(
-            build(params)
-        )
+        return process(build(params), params)
     }
 }

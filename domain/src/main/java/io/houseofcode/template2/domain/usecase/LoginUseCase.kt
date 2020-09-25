@@ -13,12 +13,12 @@ import io.houseofcode.template2.domain.repository.ItemRepository
 class LoginUseCase(private val repository: ItemRepository): LiveDataInteractor<Resource<String>, LoginUseCase.Params>() {
 
     override fun build(params: Params?): LiveData<Resource<String>> {
-        val state = checkNotNull(params)
+        val state = checkNotNull(params) { "Params must not be null" }
 
         return repository.login(state.email, state.password)
     }
 
-    override fun process(liveData: LiveData<Resource<String>>): LiveData<Resource<String>> {
+    override fun process(liveData: LiveData<Resource<String>>, params: Params?): LiveData<Resource<String>> {
         return Transformations.map(liveData) { resource ->
             if (resource.status == Resource.Status.SUCCESS) {
                 resource.data?.let { loginToken ->

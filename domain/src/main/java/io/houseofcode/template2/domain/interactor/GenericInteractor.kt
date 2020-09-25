@@ -13,7 +13,7 @@ abstract class GenericInteractor<T, in Params: Any?> {
      * @param params Optional parameters for building use case.
      * @return Generic data.
      */
-    protected abstract fun build(params: Params? = null): T
+    protected abstract fun build(params: Params?): T
 
     /**
      * Post process data returned by #build.
@@ -23,7 +23,7 @@ abstract class GenericInteractor<T, in Params: Any?> {
      * @param data Data for optional post processing.
      * @return Post processed data.
      */
-    protected open fun process(data: T): T = data
+    protected open fun process(data: T, params: Params?): T = data
 
     /**
      * Overridable execution method for returning generic data.
@@ -31,6 +31,6 @@ abstract class GenericInteractor<T, in Params: Any?> {
      * @return Processed data returned from use case.
      */
     open fun execute(params: Params? = null): T {
-        return process(build(params))
+        return process(build(params), params)
     }
 }

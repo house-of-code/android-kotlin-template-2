@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModelProvider
 import io.houseofcode.template2.R
 import io.houseofcode.template2.domain.model.Resource
 import io.houseofcode.template2.presentation.viewmodel.ItemViewModel
+import timber.log.Timber
 
 class LoginPresenter(private val view: LoginContract.View): LoginContract.Presenter {
 
@@ -15,9 +16,19 @@ class LoginPresenter(private val view: LoginContract.View): LoginContract.Presen
     private lateinit var lifecycleOwner: LifecycleOwner
     private lateinit var itemViewModel: ItemViewModel
 
-    override fun attach(activity: FragmentActivity) {
+    /**
+     * Parameters for initialization of presenter, which can be delivered optionally by view.
+     * This parameter class serves as example of how parameters can be parsed to presenter when
+     * initialed.
+     */
+    class Params(val success: Boolean)
+
+    override fun attach(activity: FragmentActivity, params: Params?) {
         context = activity
         lifecycleOwner = activity
+
+        val state = checkNotNull(params) { "Params must be provided to presenter" }
+        Timber.d("attach { success: ${state.success} }")
 
         itemViewModel = ViewModelProvider(activity).get(ItemViewModel::class.java)
     }

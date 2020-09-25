@@ -2,6 +2,7 @@ package io.houseofcode.template2.presentation.ui
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -47,6 +48,14 @@ class MainActivity: AuthActivity(), MainContract.View {
             Timber.d("setOnCheckedChangeListener { isChecked: $isChecked }")
             presenter.setFirstRunFlag(isChecked)
         }
+
+        imagePickerButton.setOnClickListener {
+            presenter.pickImage()
+        }
+
+        imageCaptureButton.setOnClickListener {
+            presenter.captureImage()
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -70,7 +79,7 @@ class MainActivity: AuthActivity(), MainContract.View {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.menuMainLogout -> {
-                TemplateApp.logout(this)
+                TemplateApp.instance.logout(this)
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -107,6 +116,10 @@ class MainActivity: AuthActivity(), MainContract.View {
                 presenter.setFirstRunFlag(false)
             }
         }
+    }
+
+    override fun onImageSelected(bitmap: Bitmap) {
+        imagePickerPreview.setImageBitmap(bitmap)
     }
 
     override fun onError(message: String) {

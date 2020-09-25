@@ -6,6 +6,7 @@
     <color name="accentColor">#FF9800</color>
 
     <color name="backgroundDefault">#F1F1F1</color>
+    <color name="backgroundPlaceholder">#DADADA</color>
 
     <color name="textDefault">#272727</color>
     <color name="textLight">#FFFFFF</color>

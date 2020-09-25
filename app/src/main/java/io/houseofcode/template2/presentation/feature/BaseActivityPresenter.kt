@@ -5,7 +5,7 @@ import androidx.fragment.app.FragmentActivity
 /**
  * Base presenter for activities.
  */
-interface BaseActivityPresenter {
+interface BaseActivityPresenter<in Params: Any?> {
 
-    fun attach(activity: FragmentActivity)
+    fun attach(activity: FragmentActivity, params: Params? = null)
 }

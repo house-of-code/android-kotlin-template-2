@@ -34,7 +34,8 @@ class LoginActivity: AppCompatActivity(), LoginContract.View {
         title = getString(R.string.activity_label_login)
 
         presenter = LoginPresenter(this)
-        presenter.attach(this)
+        // Parameters can be parsed to presenter when initialized.
+        presenter.attach(this, LoginPresenter.Params(success = true))
 
         loginSubmitButton.setOnClickListener {
             presenter.login(loginEmailEditText.text.toString(), loginPasswordEditText.text.toString())

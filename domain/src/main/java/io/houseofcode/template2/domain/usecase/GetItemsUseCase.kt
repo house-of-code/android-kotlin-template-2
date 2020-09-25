@@ -14,7 +14,7 @@ class GetItemsUseCase(private val repository: ItemRepository): LiveDataInteracto
 
     override fun build(params: Void?): LiveData<Resource<List<Item>>> = repository.getItems()
 
-    override fun process(liveData: LiveData<Resource<List<Item>>>): LiveData<Resource<List<Item>>> {
+    override fun process(liveData: LiveData<Resource<List<Item>>>, params: Void?): LiveData<Resource<List<Item>>> {
         return Transformations.map(liveData) { resource ->
             resource.apply {
                 this.data = resource.data?.sortedWith(
