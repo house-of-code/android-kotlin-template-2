@@ -5,9 +5,18 @@ import io.houseofcode.template2.domain.repository.PersistentStorageRepository
 import io.houseofcode.template2.presentation.util.get
 import io.houseofcode.template2.presentation.util.observe
 import io.houseofcode.template2.presentation.util.set
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 
 class SharedPreferencesRepository(private val sharedPreferences: SharedPreferences): PersistentStorageRepository {
+
+    companion object {
+        /**
+         * Name of SharedPreferences storage.
+         * Reflected in backup_rules.xml.
+         */
+        const val PREF_PACKAGE_NAME = "io.houseofcode.template2.preferences"
+    }
 
     /**
      * Set value in SharedPreferences.
@@ -36,6 +45,7 @@ class SharedPreferencesRepository(private val sharedPreferences: SharedPreferenc
     /**
      * Observe value from SharedPreferences.
      */
+    @ExperimentalCoroutinesApi
     override fun <T> observeValue(key: String, defaultValue: T): Flow<T> {
         @Suppress("UNCHECKED_CAST")
         return when (defaultValue) {

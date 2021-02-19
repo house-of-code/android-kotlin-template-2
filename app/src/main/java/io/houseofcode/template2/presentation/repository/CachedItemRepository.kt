@@ -4,16 +4,17 @@ import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import io.houseofcode.template2.R
-import io.houseofcode.template2.TemplateApp
-import io.houseofcode.template2.data.*
+import io.houseofcode.template2.data.ItemService
 import io.houseofcode.template2.data.dao.CacheEntryDao
 import io.houseofcode.template2.data.dao.ItemDao
+import io.houseofcode.template2.data.executeSafely
+import io.houseofcode.template2.data.mapToEntity
+import io.houseofcode.template2.data.mapToItem
 import io.houseofcode.template2.data.model.CacheEntry
 import io.houseofcode.template2.domain.model.Item
 import io.houseofcode.template2.domain.model.LoginCredentials
 import io.houseofcode.template2.domain.model.Resource
 import io.houseofcode.template2.domain.repository.ItemRepository
-import io.houseofcode.template2.presentation.viewmodel.SharedPreferencesViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -33,45 +34,41 @@ import kotlin.math.abs
 class CachedItemRepository(val context: Context,
                            private val cacheDao: CacheEntryDao,
                            private val itemDao: ItemDao,
-                           private val itemService: ItemService,
-                           private val sharedPreferenceViewModel: SharedPreferencesViewModel): ItemRepository {
+                           private val itemService: ItemService): ItemRepository {
 
     override fun login(email: String, password: String): LiveData<Resource<String>> {
         val mutableLiveData = MutableLiveData<Resource<String>>()
 
         CoroutineScope(Dispatchers.Main).launch {
             // We do not cache the login response as token is stored manually for later requests.
-            mutableLiveData.value = withContext(Dispatchers.IO) {
-                executeSafely(
-                    request = {
-                        itemService.login(
-                            LoginCredentials(email, password)
-                        )
-                    },
-                    onSuccess = { loginToken ->
-                        Resource.success(loginToken?.token)
-                    },
-                    onFailed = { errorMessage, loginToken ->
-                        Resource.error(
-                            errorMessage ?: context.getString(R.string.error_request_login),
-                            loginToken?.token
-                        )
-                    },
-                    onException = { error ->
-                        Resource.error(
-                            error.localizedMessage ?: context.getString(R.string.error_request_login)
-                        )
-                    }
-                )
+            mutableLiveData.apply {
+                value = withContext(Dispatchers.IO) {
+                    executeSafely(
+                        request = {
+                            itemService.login(
+                                LoginCredentials(email, password)
+                            )
+                        },
+                        onSuccess = { loginToken ->
+                            Resource.success(loginToken?.token)
+                        },
+                        onFailed = { errorMessage, loginToken ->
+                            Resource.error(
+                                errorMessage ?: context.getString(R.string.error_request_login),
+                                loginToken?.token
+                            )
+                        },
+                        onException = { error ->
+                            Resource.error(
+                                error.localizedMessage ?: context.getString(R.string.error_request_login)
+                            )
+                        }
+                    )
+                }
             }
         }
 
         return mutableLiveData
-    }
-
-    override fun saveToken(loginToken: String) {
-        // Save token into [SharedPreferences].
-        sharedPreferenceViewModel.setLoginToken(loginToken)
     }
 
     override fun getItem(id: String): LiveData<Resource<Item>> {

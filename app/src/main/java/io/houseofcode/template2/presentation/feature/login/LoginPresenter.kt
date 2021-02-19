@@ -6,6 +6,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import io.houseofcode.template2.R
+import io.houseofcode.template2.TemplateApp
 import io.houseofcode.template2.domain.model.Resource
 import io.houseofcode.template2.presentation.viewmodel.ItemViewModel
 import timber.log.Timber
@@ -30,11 +31,14 @@ class LoginPresenter(private val view: LoginContract.View): LoginContract.Presen
         val state = checkNotNull(params) { "Params must be provided to presenter" }
         Timber.d("attach { success: ${state.success} }")
 
-        itemViewModel = ViewModelProvider(activity).get(ItemViewModel::class.java)
+        itemViewModel = ViewModelProvider(
+            activity,
+            ItemViewModel.Factory(TemplateApp.instance.remoteRepository, TemplateApp.instance.sharedPreferencesRepository)
+        ).get(ItemViewModel::class.java)
     }
 
     override fun login(email: String, password: String) {
-        itemViewModel.login(email, password).observe(lifecycleOwner, Observer { resource ->
+        itemViewModel.login(email, password).observe(lifecycleOwner) { resource ->
             when (resource.status) {
                 Resource.Status.SUCCESS -> {
                     val loginToken = resource.data
@@ -49,6 +53,6 @@ class LoginPresenter(private val view: LoginContract.View): LoginContract.Presen
                     view.onLoginError(resource.errorMessage ?: context.getString(R.string.error_request_login))
                 }
             }
-        })
+        }
     }
 }

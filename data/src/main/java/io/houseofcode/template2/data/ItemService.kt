@@ -1,21 +1,25 @@
 package io.houseofcode.template2.data
 
-import com.google.gson.FieldNamingPolicy
-import com.google.gson.GsonBuilder
+import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import io.houseofcode.template2.data.interceptor.AuthenticationInterceptor
 import io.houseofcode.template2.data.interceptor.ItemMockInterceptor
 import io.houseofcode.template2.data.model.LoginToken
 import io.houseofcode.template2.domain.model.Item
 import io.houseofcode.template2.domain.model.LoginCredentials
+import io.houseofcode.template2.domain.serializer.DateAsStringSerializer
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
 import okhttp3.Cache
 import okhttp3.Interceptor
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import retrofit2.Response
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 import java.io.File
 import java.net.UnknownHostException
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 /**
@@ -26,8 +30,6 @@ interface ItemService {
     companion object {
         // Base URL of service.
         private const val BASE_URL = "https://houseofcode.io/api/v1/"
-        // Date format used in service.
-        private const val DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'"
 
         /**
          * Create service for example API with optional default caching.
@@ -82,19 +84,21 @@ interface ItemService {
          * @param okHttpClient Client on which to perform requests on base URL.
          * @return Mocked test service.
          */
+        @ExperimentalSerializationApi
         fun createService(okHttpClient: OkHttpClient): ItemService {
             val retrofit = Retrofit.Builder()
                 .baseUrl(BASE_URL)
                 .client(okHttpClient)
                 .addConverterFactory(
-                    GsonConverterFactory.create(
-                        GsonBuilder()
-                            // Automatic parsing of date strings into date objects.
-                            .setDateFormat(DATE_FORMAT)
-                            // Automatic parsing of field naming for lowercase with underscores.
-                            .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-                            .create()
-                    )
+                    Json {
+                        prettyPrint = true
+                        ignoreUnknownKeys = true
+                        isLenient = true
+                        encodeDefaults = false
+                        serializersModule = SerializersModule {
+                            contextual(Date::class, DateAsStringSerializer)
+                        }
+                    }.asConverterFactory("application/json".toMediaType())
                 )
                 .build()
 

@@ -18,8 +18,10 @@ abstract class AuthActivity: AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Get view model.
-        sharedPreferencesViewModel = ViewModelProvider(this, SharedPreferencesViewModel.SharedPreferencesViewModelFactory(application))
-            .get(SharedPreferencesViewModel::class.java)
+        sharedPreferencesViewModel = ViewModelProvider(
+            this,
+            SharedPreferencesViewModel.Factory(TemplateApp.instance.sharedPreferencesRepository)
+        ).get(SharedPreferencesViewModel::class.java)
 
         // Check if is login token exists.
         if (sharedPreferencesViewModel.getLoginToken().isNullOrBlank()) {

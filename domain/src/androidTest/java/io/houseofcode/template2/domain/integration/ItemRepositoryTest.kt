@@ -1,16 +1,19 @@
 package io.houseofcode.template2.domain.integration
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.common.truth.Truth.assertThat
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.mock
 import io.houseofcode.template2.domain.CoroutineTest
 import io.houseofcode.template2.domain.getOrAwaitValue
 import io.houseofcode.template2.domain.model.Item
 import io.houseofcode.template2.domain.model.Resource
+import io.houseofcode.template2.domain.pushValue
 import io.houseofcode.template2.domain.repository.ItemRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Before
 import org.junit.Test
+import org.mockito.ArgumentMatchers.anyString
 import java.util.*
 
 @ExperimentalCoroutinesApi
@@ -22,48 +25,41 @@ class ItemRepositoryTest: CoroutineTest() {
     }
 
     // Login token and item list saved by repository.
-    var savedLoginToken: String? = null
-    var items = mutableListOf<Item>()
+    private var savedLoginToken: String? = null
+    private var items = mutableListOf<Item>()
 
     // Mocked repository.
-    private val mockedRepository: ItemRepository = object: ItemRepository {
-        // Returns successful login token.
-        override fun login(email: String, password: String): LiveData<Resource<String>> {
-            return MutableLiveData<Resource<String>>().apply {
-                value = Resource.success(LOGIN_TOKEN)
-            }
+    private val mockedRepository: ItemRepository = mock {
+        onBlocking { login(anyString(), anyString()) }.thenAnswer {
+            // Returns successful login token.
+            MutableLiveData<Resource<String>>().pushValue(
+                Resource.success(LOGIN_TOKEN)
+            )
         }
+        onBlocking { getItem(anyString()) }.thenAnswer { invocation ->
+            val itemId: String = invocation.getArgument<String>(0)
+            val item = items.find { it.id == itemId }
 
-        // Saves token locally within test.
-        override fun saveToken(loginToken: String) {
-            savedLoginToken = loginToken
-        }
-
-        // Returns item from saved items if present, an error is returned otherwise.
-        override fun getItem(id: String): LiveData<Resource<Item>> {
-            return MutableLiveData<Resource<Item>>().apply {
-                val item = items.find { it.id == id }
-                value = if (item == null) {
+            // Returns item from saved items if present, an error is returned otherwise.
+            MutableLiveData<Resource<Item>>().pushValue(
+                if (item == null) {
                     Resource.error("Not found")
                 } else {
                     Resource.success(item)
                 }
-            }
+            )
         }
-
-        // Returns all saved items.
-        override fun getItems(): LiveData<Resource<List<Item>>> {
-            return MutableLiveData<Resource<List<Item>>>().apply {
-                value = Resource.success(items)
-            }
+        onBlocking { getItems() }.thenAnswer {
+            MutableLiveData<Resource<List<Item>>>().pushValue(
+                Resource.success(items)
+            )
         }
-
-        // Adds item to locally saved items and returns added item.
-        override fun addItem(item: Item): LiveData<Resource<Item>> {
-            items.add(item)
-            return MutableLiveData<Resource<Item>>().apply {
-                value = Resource.success(item)
-            }
+        onBlocking { addItem(any<Item>()) }.thenAnswer { invocation ->
+            val newItem = invocation.getArgument<Item>(0)
+            items.add(newItem)
+            MutableLiveData<Resource<Item>>().pushValue(
+                Resource.success(newItem)
+            )
         }
     }
 
@@ -103,18 +99,6 @@ class ItemRepositoryTest: CoroutineTest() {
         // Check that returned login token is the expected value.
         assertThat(resource.data).isNotNull()
         assertThat(resource.data).isEqualTo(LOGIN_TOKEN)
-    }
-
-    @Test
-    fun testSaveToken() {
-        // Check that no login token has previously been saved.
-        assertThat(savedLoginToken).isNull()
-
-        // Save login token.
-        mockedRepository.saveToken(LOGIN_TOKEN)
-
-        // Check that login token is now saved.
-        assertThat(savedLoginToken).isEqualTo(LOGIN_TOKEN)
     }
 
     @Test

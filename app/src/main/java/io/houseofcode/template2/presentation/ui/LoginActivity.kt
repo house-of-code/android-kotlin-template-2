@@ -6,9 +6,9 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import io.houseofcode.template2.R
+import io.houseofcode.template2.databinding.ActivityLoginBinding
 import io.houseofcode.template2.presentation.feature.login.LoginContract
 import io.houseofcode.template2.presentation.feature.login.LoginPresenter
-import kotlinx.android.synthetic.main.activity_login.*
 import timber.log.Timber
 
 class LoginActivity: AppCompatActivity(), LoginContract.View {
@@ -25,11 +25,16 @@ class LoginActivity: AppCompatActivity(), LoginContract.View {
         }
     }
 
+    // Binding of layout (R.layout.activity_login), should be used to access type safe views.
+    private lateinit var layout: ActivityLoginBinding
+
+    // Presenter for login actions.
     private lateinit var presenter: LoginContract.Presenter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login)
+        layout = ActivityLoginBinding.inflate(layoutInflater)
+        setContentView(layout.root)
 
         title = getString(R.string.activity_label_login)
 
@@ -37,8 +42,8 @@ class LoginActivity: AppCompatActivity(), LoginContract.View {
         // Parameters can be parsed to presenter when initialized.
         presenter.attach(this, LoginPresenter.Params(success = true))
 
-        loginSubmitButton.setOnClickListener {
-            presenter.login(loginEmailEditText.text.toString(), loginPasswordEditText.text.toString())
+        layout.loginSubmitButton.setOnClickListener {
+            presenter.login(layout.loginEmailEditText.text.toString(), layout.loginPasswordEditText.text.toString())
         }
     }
 

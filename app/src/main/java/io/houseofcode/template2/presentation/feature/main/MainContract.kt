@@ -1,6 +1,5 @@
 package io.houseofcode.template2.presentation.feature.main
 
-import android.graphics.Bitmap
 import io.houseofcode.template2.domain.model.Item
 import io.houseofcode.template2.presentation.feature.BaseActivityPresenter
 
@@ -26,16 +25,6 @@ interface MainContract {
          * Set flag for first run.
          */
         fun setFirstRunFlag(isFirstRun: Boolean)
-
-        /**
-         * Get image from device.
-         */
-        fun pickImage()
-
-        /**
-         * Capture image with camera.
-         */
-        fun captureImage()
     }
 
     interface View {
@@ -58,11 +47,6 @@ interface MainContract {
          * Callback on first run flag from persistent storage.
          */
         fun onFirstRunFlagReceived(isFirstRun: Boolean)
-
-        /**
-         * Callback on image selected, either by picking it from device or capturing it with camera.
-         */
-        fun onImageSelected(bitmap: Bitmap)
 
         /**
          * An abstract error received.

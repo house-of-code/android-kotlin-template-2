@@ -3,6 +3,7 @@
 # android-kotlin-template-2
 
 Architecture template for Android using Kotlin.
+
 This template is a renewed version of the previous Clean Architecture template, and is created to provide a transparent architecture for small to medium projects with a relatively low complexity.
 
 
@@ -194,6 +195,29 @@ https://developer.android.com/guide/practices/ui_guidelines/icon_design_adaptive
 https://developer.android.com/studio/write/image-asset-studio
 
 
+### View binding
+
+Generates binding of layouts for type safe access of views in your activities and fragments, replacing `findViewById` and Kotlin synthetic view accessors and proving null safety and faster compilation.
+
+A binding class is automatically generated for layouts and can easily be implemented; Layout named `activity_main.xml` will generate `ActivityMainBinding` and can be used in an activity like so:
+
+```
+private lateinit var layout: ActivityMainBinding
+
+override fun onCreate(savedInstanceState: Bundle) {
+    super.onCreate(savedInstanceState)
+    layout = ActivityMainBinding.inflate(layoutInflater)
+    setContentView(layout.root)
+
+    layout.imageView.setImageResource(R.drawable.ic_launcher_foreground)
+}
+```
+
+Take a look at the feature here:
+
+https://developer.android.com/topic/libraries/view-binding
+
+
 ### Coroutines
 
 Kotlin Coroutines handles asynchronous and non-blocking executing with light-weight threading.
@@ -262,6 +286,23 @@ Two repositories are exposed in the application class; One is a "regular" remote
 
 The cached responses are stored with [Android Room](https://developer.android.com/jetpack/androidx/releases/room) alongside a cache entry, which registers when a response was last cached based on a cache key.
 
+
+#### Flipper for Android - debugging database, SharedPreferences and requests
+
+To debug SharedPreferences, SQLite databases, layout or network traffic, download and run Flipper: https://fbflipper.com/
+
+Make sure to run your application as debug variant, as it is disabled in the release variant.
+
+
+### Debugging tools
+
+#### Database Inspector
+
+Android Studio 4.1 introduces the Database Inspector to inspect and query your apps database, check it out here:
+
+https://developer.android.com/studio/inspect/database
+
+You can find the inspector in: `View` > `Tool Windows` > `Database Inspector`.
 
 #### Flipper for Android - debugging database, SharedPreferences and requests
 

@@ -10,6 +10,7 @@ import io.houseofcode.template2.data.ItemService
 import io.houseofcode.template2.presentation.helper.FlipperClientInitializer
 import io.houseofcode.template2.presentation.repository.CachedItemRepository
 import io.houseofcode.template2.presentation.repository.RemoteItemRepository
+import io.houseofcode.template2.presentation.repository.SharedPreferencesRepository
 import io.houseofcode.template2.presentation.room.CacheDatabase
 import io.houseofcode.template2.presentation.ui.LoginActivity
 import io.houseofcode.template2.presentation.util.isNetworkAvailable
@@ -23,22 +24,25 @@ class TemplateApp: Application(), ViewModelStoreOwner {
         // Getter for instance of application class.
         lateinit var instance: TemplateApp
             private set
-
-        // Example database for caching.
-        lateinit var cacheDatabase: CacheDatabase
-
-        // Example remote item repository with default caching.
-        private lateinit var cachedOkHttpClient: OkHttpClient
-        lateinit var remoteRepository: RemoteItemRepository
-
-        // Example cached remote item repository with custom caching.
-        private lateinit var noCacheOkHttpClient: OkHttpClient
-        lateinit var cachedRepository: CachedItemRepository
     }
 
-    // View model for SharedPreferences.
+    // Persistent storage repository.
+    lateinit var sharedPreferencesRepository: SharedPreferencesRepository
+
+    // Example database for caching.
+    lateinit var cacheDatabase: CacheDatabase
+
+    // Example remote item repository with default caching.
+    private lateinit var cachedOkHttpClient: OkHttpClient
+    lateinit var remoteRepository: RemoteItemRepository
+
+    // Example cached remote item repository with custom caching.
+    private lateinit var noCacheOkHttpClient: OkHttpClient
+    lateinit var cachedRepository: CachedItemRepository
+
+    // View model for SharedPreferences locally in application class.
     private lateinit var sharedPreferencesViewModel: SharedPreferencesViewModel
-    // Store/container for view models, used to store SharedPreference view model.
+    // Store/container for view models, used to create and store SharedPreference view model.
     private val appViewModelStore: ViewModelStore by lazy {
         ViewModelStore()
     }
@@ -61,9 +65,15 @@ class TemplateApp: Application(), ViewModelStoreOwner {
         val flipperInitializer = FlipperClientInitializer()
         flipperInitializer.start(this)
 
+        // Create repository for SharedPreferences.
+        val sharedPreferences = this.getSharedPreferences(SharedPreferencesRepository.PREF_PACKAGE_NAME, Context.MODE_PRIVATE)
+        sharedPreferencesRepository = SharedPreferencesRepository(sharedPreferences)
+
         // Create view model for SharedPreferences, used within the application class.
-        sharedPreferencesViewModel = ViewModelProvider(this, SharedPreferencesViewModel.SharedPreferencesViewModelFactory(this))
-            .get(SharedPreferencesViewModel::class.java)
+        sharedPreferencesViewModel = ViewModelProvider(
+            this,
+            SharedPreferencesViewModel.Factory(sharedPreferencesRepository)
+        ).get(SharedPreferencesViewModel::class.java)
 
         // Create local database for caching.
         cacheDatabase = Room
@@ -86,8 +96,7 @@ class TemplateApp: Application(), ViewModelStoreOwner {
         // Create remote item repository.
         remoteRepository = RemoteItemRepository(
             this,
-            ItemService.createService(cachedOkHttpClient),
-            sharedPreferencesViewModel
+            ItemService.createService(cachedOkHttpClient)
         )
 
         // Create OkHttp client with default caching disabled.
@@ -103,8 +112,7 @@ class TemplateApp: Application(), ViewModelStoreOwner {
             this,
             cacheDatabase.cacheEntryDao(),
             cacheDatabase.itemDao(),
-            ItemService.createService(noCacheOkHttpClient),
-            sharedPreferencesViewModel
+            ItemService.createService(noCacheOkHttpClient)
         )
     }
 

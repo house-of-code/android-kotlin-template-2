@@ -7,8 +7,6 @@
     <string name="activity_label_main">MainActivity</string>
 
     <!-- Login -->
-    <string name="login_email_hint">E-mail</string>
-    <string name="login_password_hint">Password</string>
     <string name="login_submit_button_text">Login</string>
 
     <!-- Main -->
@@ -26,6 +24,8 @@
     <string name="error_request_get_item">Issue getting item</string>
     <string name="error_request_get_items">Issue getting items</string>
     <string name="error_request_add_item">Issue adding item</string>
+    <string name="error_result_launcher_pick_image">Unable to pick image</string>
+    <string name="error_result_launcher_capture_image">Unable to capture image</string>
 
     <!-- Hints -->
     <string name="hint_email">Email</string>

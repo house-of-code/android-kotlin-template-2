@@ -5,17 +5,19 @@ import androidx.lifecycle.Transformations
 import io.houseofcode.template2.domain.interactor.LiveDataInteractor
 import io.houseofcode.template2.domain.model.Resource
 import io.houseofcode.template2.domain.repository.ItemRepository
+import io.houseofcode.template2.domain.repository.PersistentStorageRepository
 
 /**
  * Login and get new token.
  * Token is saved into persistent storage if login request is successful.
  */
-class LoginUseCase(private val repository: ItemRepository): LiveDataInteractor<Resource<String>, LoginUseCase.Params>() {
+class LoginUseCase(private val remoteRepository: ItemRepository,
+                   private val persistentStorageRepository: PersistentStorageRepository): LiveDataInteractor<Resource<String>, LoginUseCase.Params>() {
 
     override fun build(params: Params?): LiveData<Resource<String>> {
         val state = checkNotNull(params) { "Params must not be null" }
 
-        return repository.login(state.email, state.password)
+        return remoteRepository.login(state.email, state.password)
     }
 
     override fun process(liveData: LiveData<Resource<String>>, params: Params?): LiveData<Resource<String>> {
@@ -23,7 +25,7 @@ class LoginUseCase(private val repository: ItemRepository): LiveDataInteractor<R
             if (resource.status == Resource.Status.SUCCESS) {
                 resource.data?.let { loginToken ->
                     // Saving new token into persistent storage.
-                    repository.saveToken(loginToken)
+                    persistentStorageRepository.setValue(PersistentStorageRepository.PREF_LOGIN_TOKEN, loginToken)
                 }
             }
             resource

@@ -20,6 +20,8 @@ class LiveDataTest: CoroutineTest() {
     private val firstText = "Value 1"
     private val firstNumber = 1
     private val secondNumber = 2
+    private val firstBoolean = false
+    private val secondBoolean = true
 
     @Test
     fun testCombineTwoLiveData() {
@@ -28,7 +30,8 @@ class LiveDataTest: CoroutineTest() {
         val liveData2 = MutableLiveData<Int>()
 
         // Combine original data into pair of latest.
-        val combinedLiveData = combineLatest(liveData1, liveData2) { text, number ->
+        val combinedLiveData = combinePair(liveData1, liveData2) { text, number ->
+            // Return values as pair.
             Pair(text, number)
         }
 
@@ -52,6 +55,45 @@ class LiveDataTest: CoroutineTest() {
         // Check second emitted item from combined LiveData.
         assertThat(secondCombinedData.first).isEqualTo(firstText)
         assertThat(secondCombinedData.second).isEqualTo(secondNumber)
+    }
+
+    @Test
+    fun testCombineThreeLiveData() {
+        // Setup original LiveData.
+        val liveData1 = MutableLiveData<String>()
+        val liveData2 = MutableLiveData<Int>()
+        val liveData3 = MutableLiveData<Boolean>()
+
+        // Combine original data into pair of latest.
+        val combinedLiveData = combineTriple(liveData1, liveData2, liveData3) { text, number, boolean ->
+            // Return values as triple.
+            Triple(text, number, boolean)
+        }
+
+        // Post value for each original LiveData.
+        liveData1.postValue(firstText)
+        liveData2.postValue(firstNumber)
+        liveData3.postValue(firstBoolean)
+
+        // Get first combined data.
+        val firstCombinedData = combinedLiveData.getOrAwaitValue()
+
+        // Check first emitted item from combined LiveData.
+        assertThat(firstCombinedData.first).isEqualTo(firstText)
+        assertThat(firstCombinedData.second).isEqualTo(firstNumber)
+        assertThat(firstCombinedData.third).isEqualTo(firstBoolean)
+
+        // Emit new item on second original LiveData.
+        liveData2.postValue(secondNumber)
+        liveData3.postValue(secondBoolean)
+
+        // Get second combined data.
+        val secondCombinedData = combinedLiveData.getOrAwaitValue()
+
+        // Check second emitted item from combined LiveData.
+        assertThat(secondCombinedData.first).isEqualTo(firstText)
+        assertThat(secondCombinedData.second).isEqualTo(secondNumber)
+        assertThat(secondCombinedData.third).isEqualTo(secondBoolean)
     }
 
     @Test

@@ -1,58 +1,50 @@
 package io.houseofcode.template2.presentation.viewmodel
 
-import android.app.Application
-import android.content.Context
-import androidx.lifecycle.*
-import io.houseofcode.template2.domain.usecase.*
-import io.houseofcode.template2.presentation.repository.SharedPreferencesRepository
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.asLiveData
+import io.houseofcode.template2.domain.repository.PersistentStorageRepository
+import io.houseofcode.template2.domain.usecase.ClearUserDataUseCase
+import io.houseofcode.template2.domain.usecase.GetFirstRunFlagUseCase
+import io.houseofcode.template2.domain.usecase.GetLoginTokenUseCase
+import io.houseofcode.template2.domain.usecase.SetFirstRunFlagUseCase
 import kotlinx.coroutines.Dispatchers
 
 /**
  * Persistent storage for saving and retrieving values.
  */
-class SharedPreferencesViewModel(application: Application): AndroidViewModel(application) {
+class SharedPreferencesViewModel(private val repository: PersistentStorageRepository): ViewModel() {
 
-    // Factory for providing application to view model.
-    class SharedPreferencesViewModelFactory(private val application: Application): ViewModelProvider.Factory {
+    // Factory for providing repository to view model.
+    class Factory(private val repository: PersistentStorageRepository): ViewModelProvider.Factory {
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(SharedPreferencesViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                return SharedPreferencesViewModel(application) as T
+                return SharedPreferencesViewModel(repository) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }
     }
 
-    companion object {
-        const val PREF_PACKAGE_NAME = "io.houseofcode.template2.preferences"
-    }
-
-    private val sharedPreferences = application.getSharedPreferences(PREF_PACKAGE_NAME, Context.MODE_PRIVATE)
-    private val sharedPreferencesRepository = SharedPreferencesRepository(sharedPreferences)
-
     fun getLoginToken(): String? {
-        return GetLoginTokenUseCase(sharedPreferencesRepository)
+        return GetLoginTokenUseCase(repository)
             .execute()
     }
 
-    fun setLoginToken(loginToken: String) {
-        SetLoginTokenUseCase(sharedPreferencesRepository)
-            .execute(SetLoginTokenUseCase.Params(loginToken))
-    }
-
     fun getFirstRunFlag(): LiveData<Boolean> {
-        return GetFirstRunFlagUseCase(sharedPreferencesRepository)
+        return GetFirstRunFlagUseCase(repository)
             .execute()
             .asLiveData(Dispatchers.Main)
     }
 
     fun setFirstRunFlag(isFirstRun: Boolean) {
-        SetFirstRunFlagUseCase(sharedPreferencesRepository)
+        SetFirstRunFlagUseCase(repository)
             .execute(SetFirstRunFlagUseCase.Params(isFirstRun))
     }
 
     fun logout() {
-        ClearUserDataUseCase(sharedPreferencesRepository)
+        ClearUserDataUseCase(repository)
             .execute()
     }
 }

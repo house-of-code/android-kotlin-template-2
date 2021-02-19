@@ -4,27 +4,57 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 
 /**
- * Zip or merge two [LiveData] into a single [LiveData] of different type.
+ * Combine/merge two different LiveData into a single LiveData.
+ * Resulting LiveData omits data when both LiveData is set.
  */
-fun <T, K, R> combineLatest(a: LiveData<T>, b: LiveData<K>, block: (T, K) -> R ): LiveData<R> {
+fun <A, B, R> combinePair(liveDataA: LiveData<A>, liveDataB: LiveData<B>, block: (A?, B?) -> R): LiveData<R> {
     return MediatorLiveData<R>().apply {
-        var lastA: T? = null
-        var lastB: K? = null
+        var lastA: A? = null
+        var lastB: B? = null
 
         fun update() {
-            val localLastA = lastA
-            val localLastB = lastB
-            if (localLastA != null && localLastB != null) {
-                this.value = block.invoke(localLastA, localLastB)
+            if (lastA != null && lastB != null) {
+                this.value = block.invoke(lastA, lastB)
             }
         }
 
-        addSource(a) {
+        addSource(liveDataA) {
             lastA = it
             update()
         }
-        addSource(b) {
+        addSource(liveDataB) {
             lastB = it
+            update()
+        }
+    }
+}
+
+/**
+ * Combine/merge three different LiveData into a single LiveData.
+ * Resulting LiveData omits data when all three LiveData is set.
+ */
+fun <A, B, C, R> combineTriple(liveDataA: LiveData<A>, liveDataB: LiveData<B>, liveDataC: LiveData<C>, block: (A?, B?, C?) -> R): LiveData<R> {
+    return MediatorLiveData<R>().apply {
+        var lastA: A? = null
+        var lastB: B? = null
+        var lastC: C? = null
+
+        fun update() {
+            if (lastA != null && lastB != null && lastC != null) {
+                this.value = block.invoke(lastA, lastB, lastC)
+            }
+        }
+
+        addSource(liveDataA) {
+            lastA = it
+            update()
+        }
+        addSource(liveDataB) {
+            lastB = it
+            update()
+        }
+        addSource(liveDataC) {
+            lastC = it
             update()
         }
     }

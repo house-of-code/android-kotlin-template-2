@@ -3,7 +3,6 @@ package io.houseofcode.template2.domain.usecase
 import androidx.lifecycle.MutableLiveData
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
-import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import io.houseofcode.template2.domain.CoroutineTest
 import io.houseofcode.template2.domain.getOrAwaitValue
@@ -30,11 +29,11 @@ class GetItemsUseCaseTest: CoroutineTest() {
 
     // Get mocked repository.
     private val repository: ItemRepository = mock {
-        onBlocking { getItems() }.doReturn(
+        onBlocking { getItems() }.thenAnswer {
             MutableLiveData<Resource<List<Item>>>().pushValue(
                 Resource.success(items)
             )
-        )
+        }
     }
 
     // Setup use case.

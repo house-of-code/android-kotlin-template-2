@@ -1,7 +1,12 @@
 package io.houseofcode.template2.domain.model
 
+import kotlinx.serialization.Serializable
+
 /**
  * Credentials used when logging in.
  */
-data class LoginCredentials(val login: String,
-                            val password: String)
+@Serializable
+data class LoginCredentials(
+    val login: String,
+    val password: String
+)

@@ -12,12 +12,6 @@ interface ItemRepository {
     fun login(email: String, password: String): LiveData<Resource<String>>
 
     /**
-     * Save login token to persistent storage.
-     * Saved token is used on future authenticated requests.
-     */
-    fun saveToken(loginToken: String)
-
-    /**
      * Get item by id.
      * @param id Item id.
      * @return Item response resource.

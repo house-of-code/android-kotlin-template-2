@@ -2,17 +2,17 @@ package io.houseofcode.template2.presentation.ui
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.fragment.app.commit
 import io.houseofcode.template2.R
 import io.houseofcode.template2.TemplateApp
+import io.houseofcode.template2.databinding.ActivityMainBinding
 import io.houseofcode.template2.domain.model.Item
 import io.houseofcode.template2.presentation.feature.main.MainContract
 import io.houseofcode.template2.presentation.feature.main.MainPresenter
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -33,28 +33,31 @@ class MainActivity: AuthActivity(), MainContract.View {
         }
     }
 
+    // Binding of layout (R.layout.activity_main), should be used to access type safe views.
+    private lateinit var layout: ActivityMainBinding
+    // Presenter for main view actions.
     private lateinit var presenter: MainContract.Presenter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        layout = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(layout.root)
 
         title = getString(R.string.activity_label_main)
 
         presenter = MainPresenter(this)
         presenter.attach(this)
 
-        firstRunToggleButton.setOnCheckedChangeListener { _, isChecked ->
+        layout.firstRunToggleButton.setOnCheckedChangeListener { _, isChecked ->
             Timber.d("setOnCheckedChangeListener { isChecked: $isChecked }")
             presenter.setFirstRunFlag(isChecked)
         }
 
-        imagePickerButton.setOnClickListener {
-            presenter.pickImage()
-        }
-
-        imageCaptureButton.setOnClickListener {
-            presenter.captureImage()
+        if (savedInstanceState == null) {
+            supportFragmentManager.commit {
+                setReorderingAllowed(true)
+                add(R.id.imageSelectContainer, ImageSelectFragment.newInstance(), "image-select")
+            }
         }
     }
 
@@ -106,7 +109,7 @@ class MainActivity: AuthActivity(), MainContract.View {
         // Will be true first time app is executed, or when flag is manually switched.
         Timber.d("onFirstRunFlagReceived { isFirstRun: $isFirstRun }")
 
-        firstRunToggleButton.isChecked = isFirstRun
+        layout.firstRunToggleButton.isChecked = isFirstRun
 
         if (isFirstRun) {
             Timber.i("Welcome! Setting first run flag in 2 seconds ...")
@@ -116,10 +119,6 @@ class MainActivity: AuthActivity(), MainContract.View {
                 presenter.setFirstRunFlag(false)
             }
         }
-    }
-
-    override fun onImageSelected(bitmap: Bitmap) {
-        imagePickerPreview.setImageBitmap(bitmap)
     }
 
     override fun onError(message: String) {

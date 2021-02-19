@@ -28,6 +28,7 @@ suspend fun <T, R> executeSafely(
             onSuccess(response.body())
         } else {
             // Get message from error response without blocking main thread.
+            @Suppress("BlockingMethodInNonBlockingContext")
             val errorMessage = withContext(Dispatchers.IO) {
                 // Get JSON error response.
                 response.errorBody()?.string()?.let { rawJsonError ->
